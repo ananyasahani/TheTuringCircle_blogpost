@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# The Turing Circle
+
+A dark, mathematical blog platform where computation meets discourse. Built with Next.js 16, React 19, and Firebase.
+
+## Stack
+
+- **Framework**: Next.js 16 (App Router, Turbopack)
+- **UI**: React 19, Tailwind CSS v4
+- **Animations**: Framer Motion, GSAP, Lenis (smooth scroll)
+- **Backend**: Firebase (Firestore, Auth, Storage)
+- **Fonts**: Outfit, Space Mono, Material Symbols Outlined
+
+## Features
+
+- Glassmorphic dark UI with gold accent design system
+- GSAP-animated navbar with mathematical burger menu
+- Framer Motion page transitions and staggered card animations
+- Lenis smooth scrolling
+- Feed tabs (For you / Featured / Latest) with live sorting
+- Dynamic post pages with markdown-like content rendering
+- Library page with multi-select tag filtering
+- Archives page with chronological timeline
+- Network page showing contributors
+- Profile page with reading stats
+
+## Routes
+
+| Route | Description |
+|---|---|
+| `/` | Homepage feed with tabs, sidebar widgets |
+| `/library` | Browsable post grid with tag filters |
+| `/archives` | Chronological post timeline |
+| `/network` | Author/contributor cards |
+| `/profile` | Reader profile and stats |
+| `/post/[slug]` | Individual post pages |
+| `/editor/[id]` | Post editor (WIP) |
+| `/login` | Authentication (WIP) |
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Firebase Emulators
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+firebase emulators:start
+```
 
-## Learn More
+Emulator UI at [http://localhost:4000](http://localhost:4000).
 
-To learn more about Next.js, take a look at the following resources:
+| Service | Port |
+|---|---|
+| Auth | 9099 |
+| Firestore | 8081 |
+| Storage | 9199 |
+| Functions | 5001 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/
+    (main)/          # Route group for Library, Archives, Network, Profile
+    post/[slug]/     # Dynamic post pages
+    editor/[id]/     # Post editor
+  components/
+    cards/           # PostCard variants (Hero, Blueprint, Minimal)
+    layout/          # Navbar, SideMenu
+    providers/       # SmoothScroll (Lenis)
+    ui/              # Button, Modal, TextInput
+  data/              # Static post data (to be replaced by Firestore)
+  services/          # Posts service, Auth service
+  lib/               # Firebase config
+```
