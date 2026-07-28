@@ -1,5 +1,9 @@
 # The Turing Circle
 
+> **UNDER CONSTRUCTION**
+>
+> Sahani if you're reading this, UPDATE THE FIREBASE.
+
 A dark, mathematical blog platform where computation meets discourse. Built with Next.js 16, React 19, and Firebase.
 
 ## Stack

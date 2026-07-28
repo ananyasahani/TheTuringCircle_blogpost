@@ -1,298 +1,264 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import SmoothScroll from "@/components/providers/SmoothScroll";
+import { useDeferredValue, useState } from "react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
-import Posts from "@/components/cards/PostCard";
+import ParticleField from "@/components/visuals/ParticleField";
+import DecryptedText from "@/components/reactbits/DecryptedText";
+import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import { getAllPosts } from "@/services/posts.service";
 
 const allPosts = getAllPosts();
-
-// ─── Sidebar widget data ──────────────────────────────────────────────────────
-const STAFF_PICKS = [
-  {
-    category: "Calculus of Form",
-    title: "The Fibonacci sequence in urban planning.",
-    author: "Marcus Thorne",
-  },
-  {
-    category: "Neuro-Aesthetics",
-    title: "Why our brains crave brutalist symmetry.",
-    author: "Dr. Li Na",
-  },
-  {
-    category: "Cryptography",
-    title: "The unhackable beauty of prime meshes.",
-    author: "Anon-404",
-  },
+const FEATURED = allPosts[0];
+const TOPICS = ["All", "Math", "Decision Theory", "AI", "Game Theory", "Science"];
+const MODES = [
+  { id: "network", label: "Network" },
+  { id: "orbit", label: "Orbit" },
+  { id: "matrix", label: "Matrix" },
 ];
 
-const TRENDING_TAGS = [
-  "#Quantum_Leap",
-  "#Topology",
-  "#Brutalism",
-  "#AI_Safety",
-  "#Zero_Knowledge",
-];
-
-const FEED_TABS = ["For you", "Featured", "Latest"];
-
-// ─── Sort helpers ───────────────────────────────────────────────────────────
-function parseViews(str) {
-  if (!str) return 0;
-  const s = str.toLowerCase().trim();
-  if (s.endsWith("k")) return parseFloat(s) * 1000;
-  return parseInt(s, 10) || 0;
+function titleOf(post) {
+  return Array.isArray(post.title) ? post.title.join("") : post.title;
 }
 
-function scorePost(p) {
-  return parseViews(p.stats?.views) + (p.stats?.comments || 0) * 5;
+function readTime(post) {
+  const words = `${post.excerpt} ${post.content}`.split(/\s+/).length;
+  return Math.max(3, Math.ceil(words / 90));
 }
 
-function sortPosts(posts, tab) {
-  switch (tab) {
-    case "Featured":
-      return [...posts].sort((a, b) => scorePost(b) - scorePost(a));
-    case "Latest":
-      return [...posts].sort((a, b) => b.id - a.id);
-    case "For you":
-    default:
-      return posts; // original order
-  }
-}
-
-// ─── Animation helpers ──────────────────────────────────────────────────────
-const fadeUp = {
-  hidden: { opacity: 0, y: 20, filter: "blur(4px)" },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] },
-  }),
-};
-
-// ─── Main export ──────────────────────────────────────────────────────────────
 export default function Homepage() {
-  const [activeTab, setActiveTab] = useState("For you");
-  const sorted = useMemo(() => sortPosts(allPosts, activeTab), [activeTab]);
+  const [mode, setMode] = useState("network");
+  const [topic, setTopic] = useState("All");
+  const [subscribed, setSubscribed] = useState(false);
+  const deferredTopic = useDeferredValue(topic);
+
+  const filteredPosts =
+    deferredTopic === "All"
+      ? allPosts.slice(1, 10)
+      : allPosts
+          .filter((post) =>
+            post.tags?.some((tag) =>
+              tag.label.toLowerCase().includes(deferredTopic.toLowerCase()),
+            ),
+          )
+          .slice(0, 9);
+
+  const submitNewsletter = (event) => {
+    event.preventDefault();
+    setSubscribed(true);
+  };
 
   return (
-    <SmoothScroll>
-      <div className="tc-grid">
-        <Navbar />
+    <div className="journal-shell">
+      <Navbar />
 
-        <main className="main-content">
-          <div className="content-container">
-            <FeedHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main>
+        <section className="journal-hero">
+          <ParticleField mode={mode} />
+          <div className="hero-gridlines" aria-hidden="true" />
 
-            <div className="feed-grid">
-              <Posts posts={sorted} />
-
-              <aside className="sidebar">
-                <QuickStats />
-                <StaffPicks picks={STAFF_PICKS} />
-                <TrendingClusters tags={TRENDING_TAGS} />
-                <RecentAuthors />
-              </aside>
-            </div>
+          <div className="hero-copy">
+            <motion.p
+              className="journal-kicker"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <DecryptedText text="Journal of mathematics & computation" />
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.08 }}
+            >
+              The Turing
+              <br />
+              <em>Circle</em>
+            </motion.h1>
+            <motion.p
+              className="hero-deck"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+            >
+              Field notes from the edge of proof, code, and collective
+              intelligence.
+            </motion.p>
           </div>
-        </main>
 
-        <MobileBottomNav />
-        <FAB />
-      </div>
-    </SmoothScroll>
+          <motion.article
+            className="lead-story"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.25 }}
+          >
+            <div className="lead-index">01 / Lead essay</div>
+            <p className="lead-topic">{FEATURED.tags?.[0]?.label}</p>
+            <Link href={`/post/${FEATURED.slug}`}>
+              <h2>{titleOf(FEATURED)}</h2>
+            </Link>
+            <p>{FEATURED.excerpt}</p>
+            <div className="lead-meta">
+              <span>{FEATURED.author.name}</span>
+              <span>{readTime(FEATURED)} min read</span>
+            </div>
+          </motion.article>
+
+          <div className="field-controls" aria-label="Particle field">
+            <span>Field</span>
+            {MODES.map((item) => (
+              <button
+                key={item.id}
+                className={mode === item.id ? "is-active" : ""}
+                onClick={() => setMode(item.id)}
+                aria-pressed={mode === item.id}
+              >
+                <i aria-hidden="true" />
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <a className="hero-scroll" href="#dispatches">
+            <span>Explore dispatches</span>
+            <i aria-hidden="true" />
+          </a>
+        </section>
+
+        <section className="issue-band" aria-label="Current issue">
+          <div>
+            <span>Current issue</span>
+            <strong>Vol. 04 / Systems</strong>
+          </div>
+          <p>
+            On patterns, incentives, uncertainty, and the models we use to
+            think.
+          </p>
+          <Link href="/library">View the complete issue <span>→</span></Link>
+        </section>
+
+        <section className="dispatches" id="dispatches">
+          <header className="section-heading">
+            <div>
+              <p>New transmissions</p>
+              <h2>Latest dispatches</h2>
+            </div>
+            <div className="topic-filter" aria-label="Filter articles">
+              {TOPICS.map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setTopic(item)}
+                  className={topic === item ? "is-active" : ""}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </header>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={deferredTopic}
+              className="dispatch-grid"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              {filteredPosts.length ? (
+                filteredPosts.map((post, index) => (
+                  <ArticleCard key={post.id} post={post} index={index} />
+                ))
+              ) : (
+                <div className="dispatch-empty">
+                  No dispatches in this field yet. Try another coordinate.
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </section>
+
+        <section className="theorem-strip">
+          <p className="journal-kicker">
+            <DecryptedText text="A working proposition" />
+          </p>
+          <blockquote>
+            “A pattern is not yet an explanation. An explanation tells us when
+            the pattern should fail.”
+          </blockquote>
+          <span>Notebook fragment / 04.17</span>
+        </section>
+
+        <section className="journal-newsletter">
+          <div>
+            <p className="journal-kicker">The weekly signal</p>
+            <h2>One difficult idea, carefully explained.</h2>
+          </div>
+          <form onSubmit={submitNewsletter}>
+            {subscribed ? (
+              <p className="subscribe-success">You are on the circuit.</p>
+            ) : (
+              <>
+                <label htmlFor="journal-email">Email address</label>
+                <div>
+                  <input
+                    id="journal-email"
+                    type="email"
+                    placeholder="reader@domain.edu"
+                    required
+                  />
+                  <button type="submit" aria-label="Subscribe">
+                    Join <span>→</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </form>
+        </section>
+      </main>
+
+      <footer className="journal-footer">
+        <Link href="/" className="footer-mark">TTC</Link>
+        <p>The Mathematics &amp; Computing Club of MIT Manipal.</p>
+        <div>
+          <Link href="/library">Library</Link>
+          <Link href="/network">Network</Link>
+          <a href="https://github.com/paymybills/TTC-Project-Page">GitHub</a>
+        </div>
+      </footer>
+    </div>
   );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+function ArticleCard({ post, index }) {
+  const title = titleOf(post);
 
-function FeedHeader({ activeTab, setActiveTab }) {
   return (
-    <motion.header
-      className="feed-header"
-      initial="hidden"
-      animate="visible"
-      variants={fadeUp}
-      custom={0.1}
+    <SpotlightCard
+      as="article"
+      className={`dispatch-card dispatch-card-${index % 5}`}
     >
-      <div className="feed-tabs-row">
-        <div className="feed-tabs">
-          {FEED_TABS.map((tab) => (
-            <button
-              key={tab}
-              className={`tab-btn${activeTab === tab ? " active" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
+      {post.image && index < 5 && (
+        <Link href={`/post/${post.slug}`} className="dispatch-image">
+          <img src={post.image} alt="" />
+          <span>{String(index + 2).padStart(2, "0")}</span>
+        </Link>
+      )}
+      <div className="dispatch-content">
+        <div className="dispatch-meta">
+          <span>{post.tags?.[0]?.label || "Notes"}</span>
+          <span>{readTime(post)} min</span>
+        </div>
+        <Link href={`/post/${post.slug}`}>
+          <h3>{title}</h3>
+        </Link>
+        <p>{post.excerpt}</p>
+        <div className="dispatch-author">
+          <span>{post.author.name}</span>
+          <Link href={`/post/${post.slug}`} aria-label={`Read ${title}`}>↗</Link>
         </div>
       </div>
-    </motion.header>
-  );
-}
-
-function StaffPicks({ picks }) {
-  return (
-    <motion.section
-      className="glass-panel sidebar-widget"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      variants={fadeUp}
-      custom={0.15}
-    >
-      <h3 className="sidebar-heading">
-        <span className="sidebar-heading-line" />
-        <span className="sidebar-heading-text">Staff Picks</span>
-      </h3>
-
-      <div className="picks-list">
-        {picks.map((pick, i) => (
-          <motion.div
-            key={pick.title}
-            className="pick-item"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={0.2 + i * 0.06}
-          >
-            <span className="pick-category">{pick.category}</span>
-            <h4 className="pick-title">{pick.title}</h4>
-            <span className="pick-author">By {pick.author}</span>
-          </motion.div>
-        ))}
-      </div>
-
-      <button className="sidebar-link-btn">View Full Archive →</button>
-    </motion.section>
-  );
-}
-
-function TrendingClusters({ tags }) {
-  return (
-    <motion.section
-      className="glass-panel sidebar-widget"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      variants={fadeUp}
-      custom={0.25}
-    >
-      <div className="sidebar-heading-text" style={{ marginBottom: "1rem" }}>
-        Trending Clusters
-      </div>
-      <div className="tags-wrap">
-        {tags.map((tag) => (
-          <span key={tag} className="tag-pill">{tag}</span>
-        ))}
-      </div>
-    </motion.section>
-  );
-}
-
-function QuickStats() {
-  const posts = getAllPosts();
-  const authors = new Set(posts.map((p) => p.author.name)).size;
-  const tags = new Set(posts.flatMap((p) => p.tags?.map((t) => t.label) || [])).size;
-  const stats = [
-    { num: posts.length, label: "Papers" },
-    { num: authors, label: "Authors" },
-    { num: tags, label: "Topics" },
-  ];
-  return (
-    <motion.div
-      className="glass-panel sidebar-widget"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      variants={fadeUp}
-      custom={0.05}
-    >
-      <div className="quick-stats-grid">
-        {stats.map((s) => (
-          <div key={s.label} className="quick-stat">
-            <span className="quick-stat-num">{s.num}</span>
-            <span className="quick-stat-label">{s.label}</span>
-          </div>
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
-function RecentAuthors() {
-  const posts = getAllPosts();
-  const seen = new Set();
-  const authors = [];
-  for (const p of posts) {
-    if (!seen.has(p.author.name) && authors.length < 5) {
-      seen.add(p.author.name);
-      authors.push(p.author);
-    }
-  }
-  return (
-    <motion.section
-      className="glass-panel sidebar-widget"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      variants={fadeUp}
-      custom={0.3}
-    >
-      <h3 className="sidebar-heading">
-        <span className="sidebar-heading-line" />
-        <span className="sidebar-heading-text">Active Nodes</span>
-      </h3>
-      <div className="recent-authors">
-        {authors.map((a) => (
-          <div key={a.name} className="recent-author">
-            {a.avatar ? (
-              <img src={a.avatar} alt={a.name} className="recent-author-avatar" />
-            ) : (
-              <div className="recent-author-initials">{a.initials || a.name.charAt(0)}</div>
-            )}
-            <div>
-              <div className="recent-author-name">{a.name}</div>
-              <div className="recent-author-field">{a.meta.split("·")[0]?.trim()}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </motion.section>
-  );
-}
-
-function MobileBottomNav() {
-  const icons = ["auto_stories", "explore", "notifications", "account_circle"];
-  return (
-    <nav className="mob-nav glass-panel">
-      {icons.map((icon, i) => (
-        <button
-          key={icon}
-          className="icon-btn"
-          style={{ color: i === 0 ? "var(--gold-bright)" : undefined }}
-        >
-          <span className="material-symbols-outlined">{icon}</span>
-        </button>
-      ))}
-    </nav>
-  );
-}
-
-function FAB() {
-  return (
-    <motion.button
-      className="gold-btn mob-fab"
-      whileHover={{ scale: 1.1, boxShadow: "0 12px 36px rgba(255,215,0,0.4)" }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ type: "spring", stiffness: 400, damping: 20 }}
-    >
-      <span className="material-symbols-outlined" style={{ fontSize: "1.2rem" }}>add</span>
-    </motion.button>
+    </SpotlightCard>
   );
 }

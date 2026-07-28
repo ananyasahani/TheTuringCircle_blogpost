@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Fibonacci construction and phyllotaxis field</title>
+  <desc id="desc">Nested Fibonacci squares, a spiral, and seed points arranged by the golden angle.</desc>
+  <rect width="1600" height="900" fill="#080907"/>
+  <g stroke="#2f322d" stroke-width="1" opacity=".8">
+    <path d="M0 150h1600M0 300h1600M0 450h1600M0 600h1600M0 750h1600"/>
+    <path d="M200 0v900M400 0v900M600 0v900M800 0v900M1000 0v900M1200 0v900M1400 0v900"/>
+  </g>
+  <g transform="translate(120 130)" fill="none" stroke="#d4af37" stroke-width="3">
+    <rect x="0" y="0" width="610" height="610"/>
+    <rect x="0" y="0" width="377" height="377"/>
+    <rect x="377" y="0" width="233" height="233"/>
+    <rect x="466" y="233" width="144" height="144"/>
+    <rect x="377" y="288" width="89" height="89"/>
+    <rect x="377" y="233" width="55" height="55"/>
+    <path d="M0 377a377 377 0 0 1 377-377M377 0a233 233 0 0 1 233 233M610 233a144 144 0 0 1-144 144M466 377a89 89 0 0 1-89-89M377 288a55 55 0 0 1 55-55" stroke="#eee9da" stroke-width="5"/>
+  </g>
+  <g transform="translate(1160 450)" fill="#d4af37">
+    <circle r="7" transform="translate(0 0)"/>
+    <circle r="6" transform="translate(-25 -20)"/>
+    <circle r="6" transform="translate(5 -48)"/>
+    <circle r="6" transform="translate(49 -34)"/>
+    <circle r="6" transform="translate(68 15)"/>
+    <circle r="6" transform="translate(37 62)"/>
+    <circle r="6" transform="translate(-25 75)"/>
+    <circle r="6" transform="translate(-83 38)"/>
+    <circle r="6" transform="translate(-100 -29)"/>
+    <circle r="6" transform="translate(-64 -94)"/>
+    <circle r="6" transform="translate(14 -120)"/>
+    <circle r="6" transform="translate(91 -87)"/>
+    <circle r="6" transform="translate(132 -10)"/>
+    <circle r="6" transform="translate(109 79)"/>
+    <circle r="6" transform="translate(27 143)"/>
+    <circle r="6" transform="translate(-78 140)"/>
+    <circle r="6" transform="translate(-158 67)"/>
+    <circle r="6" transform="translate(-174 -45)"/>
+    <circle r="6" transform="translate(-119 -150)"/>
+    <circle r="6" transform="translate(-11 -202)"/>
+    <circle r="6" transform="translate(114 -170)"/>
+    <circle r="6" transform="translate(204 -70)"/>
+    <circle r="6" transform="translate(217 68)"/>
+    <circle r="6" transform="translate(141 193)"/>
+    <circle r="6" transform="translate(3 248)"/>
+    <circle r="6" transform="translate(-146 207)"/>
+    <circle r="6" transform="translate(-248 84)"/>
+    <circle r="6" transform="translate(-257 -78)"/>
+    <circle r="6" transform="translate(-164 -224)"/>
+  </g>
+  <g fill="#eee9da" font-family="monospace">
+    <text x="120" y="95" font-size="20">FIG. 01 / RECURSION AND GROWTH</text>
+    <text x="960" y="135" font-size="56" font-family="Georgia,serif">The same ratio,</text>
+    <text x="960" y="195" font-size="56" font-family="Georgia,serif" fill="#d4af37">different mechanisms.</text>
+    <text x="960" y="245" font-size="18" fill="#aaa99f">F(n) = F(n-1) + F(n-2)</text>
+    <text x="960" y="780" font-size="17" fill="#82b9b1">GOLDEN ANGLE ≈ 137.5°</text>
+  </g>
+</svg>

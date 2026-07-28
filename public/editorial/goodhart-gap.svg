@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Goodhart gap</title>
+  <desc id="desc">A proxy metric tracks an underlying goal until a target is introduced, then the two diverge.</desc>
+  <rect width="1600" height="900" fill="#080907"/>
+  <g stroke="#30332e" stroke-width="1">
+    <path d="M160 140v610h1300M160 650h1300M160 550h1300M160 450h1300M160 350h1300M160 250h1300"/>
+  </g>
+  <path d="M160 680C330 640 420 590 560 520S780 400 900 345 1100 300 1450 250" fill="none" stroke="#82b9b1" stroke-width="6"/>
+  <path d="M160 690C320 645 430 600 560 525S770 410 900 348C1030 285 1120 210 1200 125S1370 70 1450 55" fill="none" stroke="#d4af37" stroke-width="6"/>
+  <path d="M930 115v635" stroke="#d66e58" stroke-width="3" stroke-dasharray="12 12"/>
+  <g fill="#eee9da" font-family="monospace">
+    <text x="160" y="95" font-size="20">FIG. 02 / THE GOODHART GAP</text>
+    <text x="955" y="705" font-size="17" fill="#d66e58">TARGET INTRODUCED</text>
+    <text x="1230" y="105" font-size="18" fill="#d4af37">MEASURED METRIC</text>
+    <text x="1230" y="300" font-size="18" fill="#82b9b1">UNDERLYING GOAL</text>
+    <text x="185" y="790" font-size="17" fill="#aaa99f">TIME / OPTIMIZATION PRESSURE →</text>
+  </g>
+  <g fill="#eee9da" font-family="Georgia,serif">
+    <text x="210" y="240" font-size="58">When the measure</text>
+    <text x="210" y="300" font-size="58">becomes the target,</text>
+    <text x="210" y="360" font-size="58" fill="#d4af37">the map changes.</text>
+  </g>
+</svg>

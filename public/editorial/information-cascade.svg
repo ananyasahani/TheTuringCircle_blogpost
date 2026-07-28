@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Information cascade</title>
+  <desc id="desc">A sequence of people increasingly follows earlier public choices while private evidence is hidden.</desc>
+  <rect width="1600" height="900" fill="#080907"/>
+  <g stroke="#30332e" stroke-width="2">
+    <path d="M210 440h1180"/>
+    <path d="M310 440l180-170M490 440l180 170M670 440l180-170M850 440l180 170M1030 440l180-170"/>
+  </g>
+  <g font-family="monospace" text-anchor="middle">
+    <g fill="#82b9b1">
+      <circle cx="310" cy="440" r="54"/><text x="310" y="448" fill="#080907" font-size="24">A</text>
+    </g>
+    <g fill="#d4af37">
+      <circle cx="490" cy="440" r="54"/><circle cx="670" cy="440" r="54"/><circle cx="850" cy="440" r="54"/><circle cx="1030" cy="440" r="54"/><circle cx="1210" cy="440" r="54"/>
+      <text x="490" y="448" fill="#080907" font-size="24">B</text><text x="670" y="448" fill="#080907" font-size="24">B</text><text x="850" y="448" fill="#080907" font-size="24">B</text><text x="1030" y="448" fill="#080907" font-size="24">B</text><text x="1210" y="448" fill="#080907" font-size="24">B</text>
+    </g>
+    <g fill="#aaa99f" font-size="16">
+      <text x="310" y="540">PRIVATE SIGNAL: A</text><text x="490" y="540">PRIVATE SIGNAL: B</text><text x="670" y="540">PRIVATE SIGNAL: A</text><text x="850" y="540">PRIVATE SIGNAL: A</text><text x="1030" y="540">PRIVATE SIGNAL: B</text><text x="1210" y="540">PRIVATE SIGNAL: A</text>
+    </g>
+  </g>
+  <path d="M535 665h630" stroke="#d66e58" stroke-width="3" stroke-dasharray="10 10"/>
+  <text x="850" y="710" text-anchor="middle" fill="#d66e58" font-family="monospace" font-size="18">PUBLIC CHOICES OUTWEIGH PRIVATE EVIDENCE</text>
+  <g fill="#eee9da">
+    <text x="120" y="90" font-family="monospace" font-size="20">FIG. 04 / A CASCADE CAN BE RATIONAL AND WRONG</text>
+    <text x="190" y="205" font-family="Georgia,serif" font-size="62">We see decisions.</text>
+    <text x="190" y="270" font-family="Georgia,serif" font-size="62" fill="#d4af37">We do not see evidence.</text>
+  </g>
+</svg>

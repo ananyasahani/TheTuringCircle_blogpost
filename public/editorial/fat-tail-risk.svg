@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Thin-tail and fat-tail risk</title>
+  <desc id="desc">Two probability distributions with similar centers but very different extreme-event tails.</desc>
+  <rect width="1600" height="900" fill="#080907"/>
+  <g stroke="#30332e" stroke-width="1">
+    <path d="M120 700h1360M800 120v580"/>
+    <path d="M200 120v580M400 120v580M600 120v580M1000 120v580M1200 120v580M1400 120v580"/>
+  </g>
+  <path d="M130 698C440 695 570 665 650 505C710 380 745 205 800 180C855 205 890 380 950 505C1030 665 1160 695 1470 698" fill="none" stroke="#82b9b1" stroke-width="6"/>
+  <path d="M130 680C390 650 535 610 650 520C735 455 760 330 800 320C840 330 865 455 950 520C1065 610 1210 650 1470 680" fill="none" stroke="#d4af37" stroke-width="6"/>
+  <path d="M130 700h220M1250 700h220" stroke="#d66e58" stroke-width="12"/>
+  <g fill="#eee9da" font-family="monospace">
+    <text x="120" y="85" font-size="20">FIG. 03 / TAILS DETERMINE THE DECISION</text>
+    <text x="955" y="230" font-size="18" fill="#82b9b1">THIN TAIL</text>
+    <text x="1000" y="510" font-size="18" fill="#d4af37">FAT TAIL</text>
+    <text x="1240" y="755" font-size="17" fill="#d66e58">RARE, HIGH-IMPACT REGION</text>
+  </g>
+  <text x="170" y="190" fill="#eee9da" font-family="Georgia,serif" font-size="60">Average outcomes</text>
+  <text x="170" y="252" fill="#eee9da" font-family="Georgia,serif" font-size="60">can look similar.</text>
+  <text x="170" y="314" fill="#d4af37" font-family="Georgia,serif" font-size="60">Risk does not.</text>
+</svg>
