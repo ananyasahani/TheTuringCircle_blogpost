@@ -7,7 +7,7 @@ import { getPostBySlug, getPostBySlugStatic } from "@/services/posts.service";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
-import HelixDrop from "@/components/visuals/HelixDrop";
+import SnakeGame from "@/components/visuals/SnakeGame";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -60,7 +60,7 @@ export default function PostPage() {
         {/* A little game in the side gutter — reward for the curious, and it
             fills the wide-screen whitespace. Hidden on narrow screens. */}
         <aside className="post-gutter-game" aria-hidden="true">
-          <HelixDrop />
+          <SnakeGame />
         </aside>
 
         <main className="post-container">
