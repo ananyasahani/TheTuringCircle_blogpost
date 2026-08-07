@@ -1105,6 +1105,59 @@ input {
   transform: translate(2px, -2px);
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nav-signin {
+  font-family: var(--journal-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper);
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  transition:
+    background 200ms ease,
+    border-color 200ms ease;
+}
+
+.nav-signin:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.nav-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: var(--brass);
+  color: #000;
+  font-family: var(--journal-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex: 0 0 auto;
+  transition: transform 200ms ease;
+}
+
+.nav-avatar:hover {
+  transform: scale(1.06);
+}
+
+.nav-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .nav-toggle,
 .nav-mobile {
   display: none;
@@ -1885,7 +1938,7 @@ input {
 
 @media (max-width: 900px) {
   .nav-links,
-  .nav-write {
+  .nav-actions {
     display: none;
   }
 
@@ -1966,8 +2019,26 @@ input {
     font-size: 0.52rem;
   }
 
+  .nav-mobile-auth {
+    margin-top: 2.5rem;
+  }
+
+  .nav-mobile-auth a,
+  .nav-mobile-auth button {
+    font-family: var(--journal-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass);
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 999px;
+    padding: 0.7rem 1.3rem;
+    cursor: pointer;
+  }
+
   .nav-mobile p {
-    margin-top: 3rem;
+    margin-top: 2rem;
     color: var(--paper-muted);
     font-family: var(--journal-mono);
     font-size: 0.5rem;
@@ -3152,4 +3223,127 @@ body {
   .cinematic-scroll svg {
     animation: none;
   }
+}
+
+/* ── Auth / login screen ─────────────────────────────────────────────── */
+.auth-screen {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1.5rem;
+  background:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      rgba(157, 204, 244, 0.08),
+      rgba(0, 0, 0, 0) 55%
+    ),
+    var(--cinema-black);
+  color: var(--cinema-white);
+}
+
+.auth-card {
+  width: min(30rem, 100%);
+  padding: 3rem 2.6rem 2.4rem;
+  border-radius: 24px;
+  background: rgba(14, 15, 13, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(30px) saturate(1.4);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.14) inset,
+    0 30px 80px -20px rgba(0, 0, 0, 0.8);
+  animation: liquid-spiral-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.auth-mark {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fff;
+  margin-bottom: 1.8rem;
+}
+
+.auth-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.12);
+}
+
+.auth-title {
+  margin-top: 1.2rem;
+  font-family: var(--journal-serif);
+  font-size: 3.4rem;
+  font-weight: 400;
+  line-height: 0.82;
+}
+
+.auth-title em {
+  color: transparent;
+  font-weight: 400;
+  -webkit-text-stroke: 1px rgba(245, 246, 248, 0.7);
+}
+
+.auth-deck {
+  margin-top: 1.4rem;
+  color: #b7bac0;
+  font-family: var(--journal-sans);
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+.auth-google {
+  margin-top: 2rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 0.95rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.94);
+  color: #1a1a1a;
+  font-family: var(--journal-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    transform 200ms ease,
+    background 200ms ease;
+}
+
+.auth-google:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #fff;
+}
+
+.auth-google:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.auth-error {
+  margin-top: 1rem;
+  color: var(--cinema-red);
+  font-family: var(--journal-mono);
+  font-size: 0.7rem;
+}
+
+.auth-back {
+  display: inline-block;
+  margin-top: 2rem;
+  color: var(--cinema-muted);
+  font-family: var(--journal-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 200ms ease;
+}
+
+.auth-back:hover {
+  color: var(--cinema-white);
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 const NAV_LINKS = [
   { label: "Journal", href: "/" },
@@ -13,6 +14,7 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -57,14 +59,30 @@ export default function Navbar() {
           })}
         </nav>
 
-        <a
-          href="https://ttcprojects.vercel.app"
-          className="nav-write"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Projects <span aria-hidden="true">↗</span>
-        </a>
+        <div className="nav-actions">
+          <a
+            href="https://ttcprojects.vercel.app"
+            className="nav-write"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Projects <span aria-hidden="true">↗</span>
+          </a>
+
+          {user ? (
+            <Link href="/profile" className="nav-avatar" title={user.name}>
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name} referrerPolicy="no-referrer" />
+              ) : (
+                <span>{user.name?.charAt(0) || "?"}</span>
+              )}
+            </Link>
+          ) : (
+            <Link href="/login" className="nav-signin">
+              Sign in
+            </Link>
+          )}
+        </div>
 
         <button
           className={`nav-toggle${open ? " is-open" : ""}`}
@@ -87,6 +105,22 @@ export default function Navbar() {
           </Link>
         ))}
       </nav>
+      <div className="nav-mobile-auth">
+        {user ? (
+          <button
+            onClick={() => {
+              signOut();
+              setOpen(false);
+            }}
+          >
+            Sign out ({user.name})
+          </button>
+        ) : (
+          <Link href="/login" onClick={() => setOpen(false)}>
+            Sign in
+          </Link>
+        )}
+      </div>
       <p>MIT Manipal · Mathematics &amp; Computing</p>
     </div>
     </>
