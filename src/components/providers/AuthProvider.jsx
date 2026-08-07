@@ -1,7 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
 import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import {
+  fetchCurrentProfile,
   signInWithGoogle,
   signOut,
   subscribeToAuth,
@@ -12,6 +19,7 @@ const AuthContext = createContext({
   loading: true,
   signIn: async () => {},
   signOut: async () => {},
+  refresh: async () => {},
 });
 
 export function AuthProvider({ children }) {
@@ -26,11 +34,17 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  const refresh = useCallback(async () => {
+    const profile = await fetchCurrentProfile();
+    if (profile) setUser(profile);
+  }, []);
+
   const value = {
     user,
     loading,
     signIn: signInWithGoogle,
     signOut,
+    refresh,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

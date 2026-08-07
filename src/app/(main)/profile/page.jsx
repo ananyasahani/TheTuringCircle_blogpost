@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -8,6 +8,7 @@ import {
   getAllPostsStatic,
   seedPublishedFromStatic,
 } from "@/services/posts.service";
+import { claimUsername } from "@/services/auth.service";
 import { useAuth } from "@/components/providers/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
@@ -23,11 +24,16 @@ const fadeUp = {
 };
 
 export default function ProfilePage() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refresh } = useAuth();
   const [posts, setPosts] = useState(() => getAllPostsStatic());
   const [fromDb, setFromDb] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [seedMsg, setSeedMsg] = useState("");
+
+  // Username claim
+  const [handle, setHandle] = useState("");
+  const [claiming, setClaiming] = useState(false);
+  const [handleMsg, setHandleMsg] = useState("");
 
   const loadPosts = () => {
     getAllPosts().then((data) => {
@@ -60,12 +66,21 @@ export default function ProfilePage() {
     }
   };
 
-  // Honest stats: real published count + real comment total (0 until comments
-  // exist). No fabricated view numbers.
-  const totalComments = useMemo(
-    () => posts.reduce((sum, p) => sum + (p.stats?.comments || 0), 0),
-    [posts],
-  );
+  const handleClaim = async () => {
+    if (!user) return;
+    setClaiming(true);
+    setHandleMsg("");
+    try {
+      const name = await claimUsername(user.uid, handle);
+      setHandleMsg(`Your handle is now @${name}.`);
+      setHandle("");
+      refresh?.();
+    } catch (err) {
+      setHandleMsg(err?.message || "Could not set username.");
+    } finally {
+      setClaiming(false);
+    }
+  };
 
   return (
     <SmoothScroll>
@@ -98,11 +113,13 @@ export default function ProfilePage() {
               </div>
               <div>
                 <h1 className="subpage-title" style={{ marginBottom: "0.25rem" }}>
-                  {user?.name || "Reader"}
+                  {user?.username ? `@${user.username}` : user?.name || "Reader"}
                 </h1>
                 <p className="subpage-subtitle" style={{ marginBottom: 0 }}>
                   {user
-                    ? `${user.role === "moderator" ? "Moderator" : "Member"} · ${user.email ?? ""}`
+                    ? `${user.role === "moderator" ? "Moderator" : "Member"}${
+                        user.username ? ` · ${user.name}` : ""
+                      }`
                     : "Member of The Turing Circle"}
                 </p>
               </div>
@@ -117,36 +134,51 @@ export default function ProfilePage() {
               )}
             </motion.div>
 
+            {/* Choose a username (once, if not yet set) */}
+            {user && !user.username && (
+              <motion.div
+                className="profile-handle"
+                initial="hidden"
+                animate="visible"
+                variants={fadeUp}
+                custom={0.08}
+              >
+                <div className="profile-handle-copy">
+                  <strong>Choose your handle.</strong> This is how you'll appear
+                  on posts and comments, instead of your Google name.
+                </div>
+                <div className="profile-handle-row">
+                  <span className="profile-handle-at">@</span>
+                  <input
+                    className="profile-handle-input"
+                    placeholder="username"
+                    value={handle}
+                    maxLength={20}
+                    onChange={(e) => setHandle(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleClaim()}
+                  />
+                  <button
+                    type="button"
+                    className="profile-handle-btn"
+                    onClick={handleClaim}
+                    disabled={claiming || handle.trim().length < 3}
+                  >
+                    {claiming ? "Claiming…" : "Claim"}
+                  </button>
+                </div>
+                {handleMsg && (
+                  <span className="profile-handle-msg">{handleMsg}</span>
+                )}
+              </motion.div>
+            )}
+
             {/* Write a new post */}
             <Link href="/editor/new" className="profile-write">
               ✎ Write a post
             </Link>
 
-            {/* Stats */}
-            <motion.div
-              className="profile-stats"
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              custom={0.1}
-            >
-              <div className="profile-stat glass-panel">
-                <span className="profile-stat-num">{posts.length}</span>
-                <span className="profile-stat-label">Papers in Library</span>
-              </div>
-              <div className="profile-stat glass-panel">
-                <span className="profile-stat-num">{totalComments.toLocaleString()}</span>
-                <span className="profile-stat-label">Comments</span>
-              </div>
-              <div className="profile-stat glass-panel">
-                <span className="profile-stat-num">
-                  {fromDb ? "Live" : "Static"}
-                </span>
-                <span className="profile-stat-label">Data source</span>
-              </div>
-            </motion.div>
-
-            {/* Admin: one-time seed of the static posts into Firestore */}
+            {/* Admin: one-time seed of the static posts into Firestore.
+                Auto-hides once Firestore has data. */}
             {user && !fromDb && (
               <motion.div
                 className="profile-seed"
@@ -170,52 +202,6 @@ export default function ProfilePage() {
                 {seedMsg && <span className="profile-seed-msg">{seedMsg}</span>}
               </motion.div>
             )}
-
-            {/* Reading list placeholder */}
-            <motion.section
-              className="glass-panel profile-section"
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              custom={0.2}
-            >
-              <h2 className="profile-section-title">
-                <span className="material-symbols-outlined" style={{ fontSize: "1rem", color: "var(--gold-bright)" }}>bookmark</span>
-                Reading List
-              </h2>
-              <p className="profile-section-desc">
-                Bookmark papers to build your personal reading queue. Your saved items will appear here.
-              </p>
-              <div className="profile-empty">
-                <span className="material-symbols-outlined" style={{ fontSize: "2.5rem", color: "var(--text-muted)" }}>
-                  library_books
-                </span>
-                <span className="profile-empty-text">No bookmarks yet</span>
-              </div>
-            </motion.section>
-
-            {/* Activity placeholder */}
-            <motion.section
-              className="glass-panel profile-section"
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              custom={0.3}
-            >
-              <h2 className="profile-section-title">
-                <span className="material-symbols-outlined" style={{ fontSize: "1rem", color: "var(--gold-bright)" }}>local_fire_department</span>
-                Activity
-              </h2>
-              <p className="profile-section-desc">
-                Your comments and interactions across the circle.
-              </p>
-              <div className="profile-empty">
-                <span className="material-symbols-outlined" style={{ fontSize: "2.5rem", color: "var(--text-muted)" }}>
-                  forum
-                </span>
-                <span className="profile-empty-text">No activity yet</span>
-              </div>
-            </motion.section>
           </div>
         </main>
       </div>

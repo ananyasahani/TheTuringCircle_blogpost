@@ -5,7 +5,13 @@ import {
   onAuthStateChanged,
   type User,
 } from "firebase/auth";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 const googleProvider = new GoogleAuthProvider();
@@ -13,10 +19,51 @@ const googleProvider = new GoogleAuthProvider();
 export interface UserProfile {
   uid: string;
   name: string;
+  username?: string | null;
   email: string | null;
   avatar: string | null;
   role: "reader" | "moderator";
   createdAt?: unknown;
+}
+
+/** Normalize a username to the canonical, storable form. */
+export function normalizeUsername(raw: string): string {
+  return raw.trim().toLowerCase().replace(/^@+/, "").replace(/[^a-z0-9_]/g, "");
+}
+
+/** Validate a username: 3–20 chars, letters/numbers/underscore. */
+export function isValidUsername(name: string): boolean {
+  return /^[a-z0-9_]{3,20}$/.test(name);
+}
+
+/**
+ * Claim a unique username for the signed-in user. Uniqueness is enforced by a
+ * `usernames/{name}` doc (create-only per rules): if it already exists the
+ * write is denied and we surface "taken". On success we also stamp the name
+ * onto the user's own profile doc.
+ */
+export async function claimUsername(
+  uid: string,
+  raw: string,
+): Promise<string> {
+  const name = normalizeUsername(raw);
+  if (!isValidUsername(name)) {
+    throw new Error(
+      "Usernames are 3–20 characters: letters, numbers, or underscore.",
+    );
+  }
+  const ref = doc(db, "usernames", name);
+  const existing = await getDoc(ref);
+  if (existing.exists()) {
+    throw new Error("That username is taken.");
+  }
+  try {
+    await setDoc(ref, { uid, createdAt: serverTimestamp() });
+  } catch {
+    throw new Error("That username is taken.");
+  }
+  await updateDoc(doc(db, "users", uid), { username: name });
+  return name;
 }
 
 /**
@@ -32,6 +79,7 @@ async function ensureUserProfile(user: User): Promise<UserProfile> {
     const profile: UserProfile = {
       uid: user.uid,
       name: user.displayName || "Anonymous",
+      username: null,
       email: user.email,
       avatar: user.photoURL,
       role: "reader",
@@ -52,6 +100,13 @@ export async function signInWithGoogle(): Promise<UserProfile> {
 /** Sign the current user out. */
 export function signOut(): Promise<void> {
   return firebaseSignOut(auth);
+}
+
+/** Re-read the current user's profile doc (e.g. after claiming a username). */
+export async function fetchCurrentProfile(): Promise<UserProfile | null> {
+  const user = auth.currentUser;
+  if (!user) return null;
+  return ensureUserProfile(user);
 }
 
 /**
