@@ -1,22 +1,18 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
+import { ArrowDown, ArrowRight, MoveUpRight } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
-import ParticleField from "@/components/visuals/ParticleField";
+import BlurText from "@/components/reactbits/BlurText";
 import DecryptedText from "@/components/reactbits/DecryptedText";
-import SpotlightCard from "@/components/reactbits/SpotlightCard";
+import LiquidSpiral from "@/components/visuals/LiquidSpiral";
 import { getAllPosts } from "@/services/posts.service";
 
-const allPosts = getAllPosts();
-const FEATURED = allPosts[0];
-const TOPICS = ["All", "Math", "Decision Theory", "AI", "Game Theory", "Science"];
-const MODES = [
-  { id: "network", label: "Network" },
-  { id: "orbit", label: "Orbit" },
-  { id: "matrix", label: "Matrix" },
-];
+const posts = getAllPosts();
+const featuredPosts = posts.slice(0, 4);
 
 function titleOf(post) {
   return Array.isArray(post.title) ? post.title.join("") : post.title;
@@ -28,21 +24,7 @@ function readTime(post) {
 }
 
 export default function Homepage() {
-  const [mode, setMode] = useState("network");
-  const [topic, setTopic] = useState("All");
   const [subscribed, setSubscribed] = useState(false);
-  const deferredTopic = useDeferredValue(topic);
-
-  const filteredPosts =
-    deferredTopic === "All"
-      ? allPosts.slice(1, 10)
-      : allPosts
-          .filter((post) =>
-            post.tags?.some((tag) =>
-              tag.label.toLowerCase().includes(deferredTopic.toLowerCase()),
-            ),
-          )
-          .slice(0, 9);
 
   const submitNewsletter = (event) => {
     event.preventDefault();
@@ -50,166 +32,151 @@ export default function Homepage() {
   };
 
   return (
-    <div className="journal-shell">
+    <div className="cinematic-shell">
+      {/* Liquid-glass ribbon — fixed underlay behind the entire page scroll */}
+      <div className="cinematic-underlay" aria-hidden="true">
+        <LiquidSpiral
+          src="/editorial/glass-ribbon.png"
+          mode="flow"
+          iridescence={0.85}
+        />
+      </div>
+
       <Navbar />
 
       <main>
-        <section className="journal-hero">
-          <ParticleField mode={mode} />
-          <div className="hero-gridlines" aria-hidden="true" />
+        <section className="cinematic-hero">
+          <div className="hero-noise" aria-hidden="true" />
+          <div className="hero-veil" aria-hidden="true" />
 
-          <div className="hero-copy">
-            <motion.p
-              className="journal-kicker"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <DecryptedText text="Journal of mathematics & computation" />
-            </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.08 }}
-            >
+          <motion.div
+            className="cinematic-hero-copy"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <p className="cinematic-eyebrow">
+              <span />
+              <DecryptedText text="MATHEMATICS / COMPUTATION / CULTURE" />
+            </p>
+            <h1>
               The Turing
               <br />
               <em>Circle</em>
-            </motion.h1>
-            <motion.p
-              className="hero-deck"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-            >
+            </h1>
+            <p className="cinematic-deck">
+              A journal for ideas that become clearer when they move.
+            </p>
+          </motion.div>
+
+          <motion.aside
+            className="hero-editorial-note"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
+          >
+            <span>Issue 04</span>
+            <p>
               Field notes from the edge of proof, code, and collective
               intelligence.
-            </motion.p>
-          </div>
-
-          <motion.article
-            className="lead-story"
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.25 }}
-          >
-            <div className="lead-index">01 / Lead essay</div>
-            <p className="lead-topic">{FEATURED.tags?.[0]?.label}</p>
-            <Link href={`/post/${FEATURED.slug}`}>
-              <h2>{titleOf(FEATURED)}</h2>
+            </p>
+            <Link href={`/post/${featuredPosts[0].slug}`}>
+              Read the lead essay <ArrowRight size={15} strokeWidth={1.5} />
             </Link>
-            <p>{FEATURED.excerpt}</p>
-            <div className="lead-meta">
-              <span>{FEATURED.author.name}</span>
-              <span>{readTime(FEATURED)} min read</span>
-            </div>
-          </motion.article>
+          </motion.aside>
 
-          <div className="field-controls" aria-label="Particle field">
-            <span>Field</span>
-            {MODES.map((item) => (
-              <button
-                key={item.id}
-                className={mode === item.id ? "is-active" : ""}
-                onClick={() => setMode(item.id)}
-                aria-pressed={mode === item.id}
-              >
-                <i aria-hidden="true" />
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          <a className="hero-scroll" href="#dispatches">
-            <span>Explore dispatches</span>
-            <i aria-hidden="true" />
+          <a className="cinematic-scroll" href="#field-notes">
+            <ArrowDown size={17} strokeWidth={1.5} />
+            <span>Enter the journal</span>
           </a>
-        </section>
 
-        <section className="issue-band" aria-label="Current issue">
-          <div>
-            <span>Current issue</span>
-            <strong>Vol. 04 / Systems</strong>
+          <div className="hero-coordinate" aria-hidden="true">
+            <span>13.3525 N</span>
+            <span>74.7864 E</span>
           </div>
-          <p>
-            On patterns, incentives, uncertainty, and the models we use to
-            think.
-          </p>
-          <Link href="/library">View the complete issue <span>→</span></Link>
         </section>
 
-        <section className="dispatches" id="dispatches">
-          <header className="section-heading">
-            <div>
-              <p>New transmissions</p>
-              <h2>Latest dispatches</h2>
-            </div>
-            <div className="topic-filter" aria-label="Filter articles">
-              {TOPICS.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setTopic(item)}
-                  className={topic === item ? "is-active" : ""}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
+        <section className="editorial-manifesto" id="field-notes">
+          <p className="cinematic-eyebrow">
+            <span />
+            Our working premise
+          </p>
+          <BlurText
+            as="h2"
+            text="The interesting work begins where the clean answer ends."
+          />
+          <div className="manifesto-foot">
+            <p>
+              We publish explorations of mathematics, code, decision-making,
+              and the strange systems they create together.
+            </p>
+            <span>Independent journal / MIT Manipal</span>
+          </div>
+        </section>
+
+        <section className="flow-stories" aria-label="Featured writing">
+          {featuredPosts.map((post, index) => (
+            <FlowStory key={post.id} post={post} index={index} />
+          ))}
+        </section>
+
+        <section className="journal-index">
+          <header>
+            <p className="cinematic-eyebrow">
+              <span />
+              More from the journal
+            </p>
+            <Link href="/library">
+              Complete library <ArrowRight size={16} strokeWidth={1.5} />
+            </Link>
           </header>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={deferredTopic}
-              className="dispatch-grid"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.35 }}
-            >
-              {filteredPosts.length ? (
-                filteredPosts.map((post, index) => (
-                  <ArticleCard key={post.id} post={post} index={index} />
-                ))
-              ) : (
-                <div className="dispatch-empty">
-                  No dispatches in this field yet. Try another coordinate.
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
+          <div className="index-list">
+            {posts.slice(4, 9).map((post, index) => (
+              <Link
+                href={`/post/${post.slug}`}
+                className="index-row"
+                key={post.id}
+              >
+                <span>{String(index + 5).padStart(2, "0")}</span>
+                <h3>{titleOf(post)}</h3>
+                <p>{post.tags?.[0]?.label || "Notes"}</p>
+                <MoveUpRight size={19} strokeWidth={1.3} />
+              </Link>
+            ))}
+          </div>
         </section>
 
-        <section className="theorem-strip">
-          <p className="journal-kicker">
-            <DecryptedText text="A working proposition" />
-          </p>
-          <blockquote>
-            “A pattern is not yet an explanation. An explanation tells us when
-            the pattern should fail.”
-          </blockquote>
-          <span>Notebook fragment / 04.17</span>
-        </section>
-
-        <section className="journal-newsletter">
+        <section className="cinematic-newsletter">
+          <div className="newsletter-orbit" aria-hidden="true">
+            <span />
+            <i />
+          </div>
           <div>
-            <p className="journal-kicker">The weekly signal</p>
-            <h2>One difficult idea, carefully explained.</h2>
+            <p className="cinematic-eyebrow">
+              <span />
+              The weekly signal
+            </p>
+            <BlurText
+              as="h2"
+              text="One difficult idea, carefully explained."
+            />
           </div>
           <form onSubmit={submitNewsletter}>
             {subscribed ? (
-              <p className="subscribe-success">You are on the circuit.</p>
+              <p className="cinematic-success">You are on the circuit.</p>
             ) : (
               <>
-                <label htmlFor="journal-email">Email address</label>
+                <label htmlFor="cinematic-email">Email address</label>
                 <div>
                   <input
-                    id="journal-email"
+                    id="cinematic-email"
                     type="email"
                     placeholder="reader@domain.edu"
                     required
                   />
-                  <button type="submit" aria-label="Subscribe">
-                    Join <span>→</span>
+                  <button type="submit" aria-label="Join the weekly signal">
+                    <ArrowRight size={20} strokeWidth={1.5} />
                   </button>
                 </div>
               </>
@@ -218,47 +185,54 @@ export default function Homepage() {
         </section>
       </main>
 
-      <footer className="journal-footer">
-        <Link href="/" className="footer-mark">TTC</Link>
+      <footer className="cinematic-footer">
+        <div className="footer-wordmark">TTC</div>
         <p>The Mathematics &amp; Computing Club of MIT Manipal.</p>
-        <div>
+        <nav aria-label="Footer navigation">
           <Link href="/library">Library</Link>
           <Link href="/network">Network</Link>
-          <a href="https://github.com/paymybills/TTC-Project-Page">GitHub</a>
-        </div>
+          <a href="https://ttcprojects.vercel.app">Projects</a>
+        </nav>
+        <span>2026 / Manipal, India</span>
       </footer>
     </div>
   );
 }
 
-function ArticleCard({ post, index }) {
+function FlowStory({ post, index }) {
   const title = titleOf(post);
 
   return (
-    <SpotlightCard
-      as="article"
-      className={`dispatch-card dispatch-card-${index % 5}`}
+    <motion.article
+      className={`flow-story flow-story-${index + 1}`}
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.18 }}
+      transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
     >
-      {post.image && index < 5 && (
-        <Link href={`/post/${post.slug}`} className="dispatch-image">
-          <img src={post.image} alt="" />
-          <span>{String(index + 2).padStart(2, "0")}</span>
-        </Link>
-      )}
-      <div className="dispatch-content">
-        <div className="dispatch-meta">
+      <Link href={`/post/${post.slug}`} className="flow-image">
+        <Image
+          src={post.image}
+          alt=""
+          fill
+          sizes="(max-width: 760px) 100vw, 58vw"
+          unoptimized
+        />
+        <span>{String(index + 1).padStart(2, "0")}</span>
+      </Link>
+      <div className="flow-copy">
+        <div className="flow-meta">
           <span>{post.tags?.[0]?.label || "Notes"}</span>
-          <span>{readTime(post)} min</span>
+          <span>{readTime(post)} min read</span>
         </div>
         <Link href={`/post/${post.slug}`}>
-          <h3>{title}</h3>
+          <h2>{title}</h2>
         </Link>
         <p>{post.excerpt}</p>
-        <div className="dispatch-author">
-          <span>{post.author.name}</span>
-          <Link href={`/post/${post.slug}`} aria-label={`Read ${title}`}>↗</Link>
-        </div>
+        <Link className="flow-read" href={`/post/${post.slug}`}>
+          Read essay <ArrowRight size={16} strokeWidth={1.5} />
+        </Link>
       </div>
-    </SpotlightCard>
+    </motion.article>
   );
 }

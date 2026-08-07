@@ -1,10 +1,11 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { getPostBySlug } from "@/services/posts.service";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
+import LiquidSpiral from "@/components/visuals/LiquidSpiral";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -26,6 +27,17 @@ export default function PostPage() {
   return (
     <SmoothScroll>
       <div className="tc-grid">
+        {post.image && (
+          <div className="post-ambient" aria-hidden="true">
+            <LiquidSpiral
+              src={post.image}
+              mode="flow"
+              iridescence={0.6}
+              quality="ambient"
+            />
+            <div className="post-ambient-veil" />
+          </div>
+        )}
         <Navbar />
 
         <main className="post-container">
@@ -85,11 +97,29 @@ export default function PostPage() {
                   const lines = block.split('\n');
                   const heading = lines[0].replace(/^###\s*/, '');
                   const body = lines.slice(1).join(' ').trim();
-                  const els = [<h3 key={`h-${i}`} className="post-h3">{heading}</h3>];
-                  if (body) els.push(<p key={`p-${i}`} className="post-paragraph">{body}</p>);
+                  const els = [
+                    <Reveal key={`h-${i}`} index={i} as="h3" className="post-h3">
+                      {heading}
+                    </Reveal>,
+                  ];
+                  if (body)
+                    els.push(
+                      <Reveal
+                        key={`p-${i}`}
+                        index={i + 1}
+                        as="p"
+                        className="post-paragraph"
+                      >
+                        {body}
+                      </Reveal>,
+                    );
                   return els;
                 }
-                return [<p key={i} className="post-paragraph">{block}</p>];
+                return [
+                  <Reveal key={i} index={i} as="p" className="post-paragraph">
+                    {block}
+                  </Reveal>,
+                ];
               })}
             </div>
 
@@ -113,5 +143,33 @@ export default function PostPage() {
         </main>
       </div>
     </SmoothScroll>
+  );
+}
+
+/**
+ * Reveal — scroll-triggered pop-in for article blocks. Alternating blocks
+ * enter from opposite sides so reading down the page feels like it's being
+ * assembled, with a soft blur-to-focus and gentle overshoot.
+ */
+function Reveal({ children, index = 0, as = "p", className }) {
+  const reduce = useReducedMotion();
+  const MotionTag = motion[as] || motion.div;
+  const fromLeft = index % 2 === 0;
+
+  if (reduce) {
+    const Tag = as;
+    return <Tag className={className}>{children}</Tag>;
+  }
+
+  return (
+    <MotionTag
+      className={className}
+      initial={{ opacity: 0, x: fromLeft ? -44 : 44, y: 26, filter: "blur(6px)" }}
+      whileInView={{ opacity: 1, x: 0, y: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, amount: 0.35 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {children}
+    </MotionTag>
   );
 }

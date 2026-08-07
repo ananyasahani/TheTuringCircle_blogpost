@@ -61,3 +61,5 @@ Thumbs.db
 
 # Editor
 .vscode/settings.json
+# local dev screenshots
+artifacts/

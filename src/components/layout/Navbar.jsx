@@ -14,6 +14,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -22,8 +23,16 @@ export default function Navbar() {
     };
   }, [open]);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="nav-glass">
+    <>
+    <header className={`nav-glass${scrolled ? " is-scrolled" : ""}`}>
       <div className="nav-inner">
         <Link href="/" className="nav-brand" onClick={() => setOpen(false)}>
           <span className="nav-mark" aria-hidden="true">
@@ -67,18 +76,19 @@ export default function Navbar() {
           <span />
         </button>
       </div>
-
-      <div className={`nav-mobile${open ? " is-open" : ""}`}>
-        <nav aria-label="Mobile navigation">
-          {NAV_LINKS.map((link, index) => (
-            <Link key={link.href} href={link.href} onClick={() => setOpen(false)}>
-              <span>0{index + 1}</span>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <p>MIT Manipal · Mathematics &amp; Computing</p>
-      </div>
     </header>
+
+    <div className={`nav-mobile${open ? " is-open" : ""}`}>
+      <nav aria-label="Mobile navigation">
+        {NAV_LINKS.map((link, index) => (
+          <Link key={link.href} href={link.href} onClick={() => setOpen(false)}>
+            <span>0{index + 1}</span>
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+      <p>MIT Manipal · Mathematics &amp; Computing</p>
+    </div>
+    </>
   );
 }
