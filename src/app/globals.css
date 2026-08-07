@@ -3809,23 +3809,19 @@ body {
   display: none;
 }
 
-@media (min-width: 1280px) {
+/* Only show once the right gutter is genuinely wide enough for the 300px panel
+   plus breathing room: 1120 column + ~2×230 gutters ≈ 1580px. Anchored to the
+   right edge so it can never clip off-screen. */
+@media (min-width: 1580px) {
   .post-gutter-game {
     display: block;
     position: fixed;
     top: 50%;
-    left: max(1.5rem, calc((100vw - 1120px) / 2 - 340px));
+    right: max(1.5rem, calc((100vw - 1120px) / 2 - 330px));
     transform: translateY(-50%);
     z-index: 2;
     width: 300px;
     pointer-events: auto;
-  }
-}
-
-/* On very wide screens, give it a touch more separation from the column. */
-@media (min-width: 1700px) {
-  .post-gutter-game {
-    left: calc((100vw - 1120px) / 2 - 360px);
   }
 }
 
