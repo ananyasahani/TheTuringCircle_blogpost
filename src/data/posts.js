@@ -39,68 +39,6 @@ Thanks for reading. There is at least one easter egg on this very page.`,
     ],
   },
   {
-    id: 9,
-    slug: "building-a-place-where-mathematics-moves",
-    variant: "hero",
-    author: {
-      initials: "TTC",
-      name: "The Turing Circle",
-      meta: "Projects & Process · 1h ago",
-    },
-    title: ["Building a Place Where ", "Mathematics Moves"],
-    titleHighlight: true,
-    excerpt:
-      "Why we built an interactive mathematics laboratory, what the particle system taught us, and how simulations can turn abstract ideas into questions a visitor can manipulate.",
-    content: `The project began with a dissatisfaction: mathematical ideas are often presented after all the movement has been removed from them. A graph appears as a finished diagram. An algorithm appears as pseudocode. A surface appears as a formula. These forms are precise, but they hide the process by which structure develops.
-
-We wanted to build a place where a visitor could interrupt that process. Change the rule. Advance one layer. Watch a search frontier expand. See a network lose distinction as information is repeatedly averaged. The result became the Turing Circle Project Lab: part visualization, part instrument, and part argument about how technical ideas should be communicated.
-
-### Why Interaction Matters
-An animation can still be passive. It may be beautiful while asking nothing from the viewer. We treated interaction as a way to expose assumptions rather than as decoration.
-
-In the particle field, the same points become a graph, an orbital sketch, a matrix, or an attractor. Keeping the visual vocabulary stable makes the changed rule easier to notice. In the pathfinding modes, the final route matters less than the shape of the search. Dijkstra expands without directional information; A* spends a heuristic to narrow its attention.
-
-The visitor is not only shown a result. They are given a way to compare the work that produced it.
-
-### The Particle System
-The main field is built with Three.js and buffer geometry. Each particle stores position and color in typed arrays that can be updated without creating thousands of React elements. Every visualization mode precomputes a target geometry. The render loop interpolates current positions toward those targets, preserving continuity while the mathematical interpretation changes.
-
-Connections are generated from local distance checks. Colors carry state in algorithm modes: unvisited nodes remain dim, the frontier becomes visible, explored nodes leave a fading trail, and the final path resolves in white.
-
-Performance shaped the design. Pixel density is capped, connection checks are sampled, the heavier surface engine pauses when it leaves the viewport, and mobile devices receive less work. These constraints are not separate from the experience. A model that drops frames stops communicating change clearly.
-
-### A Surface You Can Write
-MosDes is the in-house surface explorer. A visitor enters an expression z = f(x, y, t), and the system evaluates it over a field of points. Presets include waves, ripples, saddles, and decaying peaks. Particle and vector views reveal two different readings of the same function: height and local orientation.
-
-The expression parser is deliberately constrained. Earlier prototypes evaluated generated JavaScript directly, which was flexible but unsafe. The current version compiles mathematical expressions with an explicit symbol whitelist. Building an interactive technical tool also means deciding what the input is allowed to mean.
-
-### Graph Intelligence
-The GNN lab makes message passing visible. Every node begins with a two-dimensional feature vector. One layer gathers neighboring vectors using mean, sum, or max aggregation, then transforms the result. Visitors can switch graph structures and inspect a selected node after every pass.
-
-Repeated averaging produces an important failure mode: over-smoothing. Node embeddings become increasingly similar until communities that were initially distinct are difficult to separate. The lab turns that phrase into a measurable change in feature spread.
-
-### Beliefs in Public
-The collective-behavior lab studies a different network: people observing people. Its coordination mode shows how expectations can select between multiple equilibria even when neither option is intrinsically superior. Its cascade mode reveals private signals one participant at a time.
-
-Later participants observe earlier decisions but not the evidence behind them. A public majority can therefore become stronger while the underlying information remains weak. This connects game theory, Bayesian updating, and institutional design in a form that can be explored in under a minute.
-
-### Being Honest About Models
-Not every mode is a scientific simulation. Some are geometric constructions or conceptual sketches. The project now says so directly. A cluster inspired by the three-body problem is not the same thing as numerically integrating gravity. A visual metaphor becomes misleading when its simplifications are hidden.
-
-Our standard is not photorealism. It is legibility: what does each point represent, which rule changes it, and what claim can the result support?
-
-### What It Means to Us
-The Turing Circle sits between mathematics and computing, but the interesting work happens when that boundary becomes porous. An equation becomes a surface. A graph becomes an algorithm, then a neural network, then a model of social belief. Code gives the idea time, motion, and response.
-
-This project is not a map of everything we study. It is a statement about how we want to study: by making assumptions explicit, building things that can be questioned, and treating explanation as a technical craft of its own.`,
-    image: "/editorial/project-lab.svg",
-    stats: { views: "1.2k", comments: 18 },
-    tags: [
-      { label: "Design", style: "gold" },
-      { label: "Engineering", style: "muted" },
-    ],
-  },
-  {
     id: 8,
     slug: "fibonacci-is-not-natures-secret-code",
     variant: "hero",
