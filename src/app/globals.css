@@ -2946,6 +2946,13 @@ body {
   font-size: 1.6rem;
 }
 
+.cinematic-error {
+  margin-top: 0.8rem;
+  color: var(--cinema-red);
+  font-family: var(--journal-mono);
+  font-size: 0.72rem;
+}
+
 .cinematic-footer {
   min-height: 21rem;
   padding: 4rem 4vw 2.5rem;
@@ -3346,4 +3353,97 @@ body {
 
 .auth-back:hover {
   color: var(--cinema-white);
+}
+
+.profile-signout {
+  margin-left: auto;
+  align-self: center;
+  font-family: var(--journal-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition:
+    color 200ms ease,
+    border-color 200ms ease,
+    background 200ms ease;
+}
+
+.profile-signout:hover {
+  color: var(--paper);
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.profile-seed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.1rem 1.3rem;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(212, 175, 55, 0.06);
+  font-family: var(--journal-sans);
+  font-size: 0.9rem;
+  color: var(--paper);
+}
+
+.profile-seed > div {
+  flex: 1 1 16rem;
+}
+
+.profile-seed-btn {
+  font-family: var(--journal-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #000;
+  background: var(--brass);
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+.profile-seed-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.profile-seed-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.profile-seed-msg {
+  flex-basis: 100%;
+  font-family: var(--journal-mono);
+  font-size: 0.72rem;
+  color: var(--brass);
+}
+
+/* Konami-code easter egg: a brief, gentle tilt of the whole page. */
+.konami-tilt body {
+  animation: konami-tilt 1.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center center;
+}
+
+@keyframes konami-tilt {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(1.4deg); }
+  60% { transform: rotate(-1deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .konami-tilt body {
+    animation: none;
+  }
 }

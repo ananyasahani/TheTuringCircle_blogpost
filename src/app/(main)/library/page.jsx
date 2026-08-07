@@ -1,21 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { getAllPosts } from "@/services/posts.service";
+import { getAllPosts, getAllPostsStatic } from "@/services/posts.service";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
-
-const posts = getAllPosts();
-
-// Extract unique tags from all posts
-const allTags = [
-  "All",
-  ...Array.from(
-    new Set(posts.flatMap((p) => p.tags?.map((t) => t.label) || []))
-  ),
-];
 
 const cardAnim = {
   hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
@@ -30,6 +20,27 @@ const cardAnim = {
 
 export default function LibraryPage() {
   const [active, setActive] = useState(new Set());
+  const [posts, setPosts] = useState(() => getAllPostsStatic());
+
+  useEffect(() => {
+    let alive = true;
+    getAllPosts().then((data) => {
+      if (alive && data.length) setPosts(data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const allTags = useMemo(
+    () => [
+      "All",
+      ...Array.from(
+        new Set(posts.flatMap((p) => p.tags?.map((t) => t.label) || [])),
+      ),
+    ],
+    [posts],
+  );
 
   function toggleTag(tag) {
     setActive((prev) => {

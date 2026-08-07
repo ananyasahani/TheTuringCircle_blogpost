@@ -4,7 +4,7 @@ import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 const projectId =
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "theturingcircle-25a76";
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "ttcblog-c4bfd";
 
 const firebaseConfig = {
     // The emulator suite ignores real credentials but the SDK still requires a
@@ -27,10 +27,11 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Connect to emulators only during local development. Guarded so hot reloads
-// don't try to reconnect an already-connected emulator (which throws).
+// Connect to the local emulator suite ONLY when explicitly opted in via
+// NEXT_PUBLIC_USE_EMULATORS=true. Otherwise dev talks to the live project.
+// Guarded so hot reloads don't reconnect an already-connected emulator.
 if (
-    process.env.NODE_ENV === "development" &&
+    process.env.NEXT_PUBLIC_USE_EMULATORS === "true" &&
     typeof window !== "undefined" &&
     !globalThis.__TTC_EMULATORS_CONNECTED__
 ) {

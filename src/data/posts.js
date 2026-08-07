@@ -1,5 +1,44 @@
 export const POSTS = [
   {
+    id: 10,
+    slug: "why-the-turing-circle-exists",
+    variant: "hero",
+    author: {
+      initials: "TTC",
+      name: "The Turing Circle",
+      meta: "Letters · Just now",
+    },
+    title: ["Why The Turing Circle ", "Exists"],
+    titleHighlight: true,
+    excerpt:
+      "We started in our second year as a few mathematics and computing students with too many ideas and nowhere to put them. This is a short note on how it began, what we love, and the fact that yes, there are easter eggs.",
+    content: `We started in our second year. A few of us studying mathematics and computing, sharing the same happy problem: too many ideas we thought were clever, and nowhere to show them off. A proof would live and die inside an assignment. A neat trick in code would run once and vanish. The good part, the bit that made us grin, almost never made it out into the open.
+
+So we built somewhere to put it. A place to take an idea we found beautiful, or funny, or a little devious, and give it room to breathe. Written well enough that a friend from another course could follow along, and hiding a wink or two for the people who look closely.
+
+### What we love
+We like being clever, and we are not going to pretend otherwise. We like the elegant proof that lands like a punchline. We like the one line of code that does the work of twenty. We like a good pun in a variable name. Devilry, in small and well tested doses, is very much encouraged.
+
+What we care about underneath the mischief is craft. Nothing hidden, nothing wasted, every step there because it earns its place. If we are going to be cheeky, we would like to be correct about it too.
+
+### Look closely
+Yes, there are easter eggs. Some are in the writing. Some are in the site. We are not going to tell you where, because that would rather defeat the point. If you find one, consider it a handshake from whoever hid it.
+
+### How it has grown
+We are in our fourth year now, and the Circle has grown up alongside us. We have learned more than we expected, been wrong plenty, and enjoyed the company more than any of us will admit in writing.
+
+### What we hope it becomes
+Mostly, we hope it keeps going, and keeps its sense of humour. That whoever picks this up in a later year finds it sharp, warm, and worth adding a trick or two of their own to. Write about what you find beautiful. Take your time. Leave something clever for the next person to discover.
+
+Thanks for reading. There is at least one easter egg on this very page.`,
+    image: "/editorial/glass-ribbon.png",
+    stats: { views: "0", comments: 0 },
+    tags: [
+      { label: "Letters", style: "gold" },
+      { label: "The Circle", style: "muted" },
+    ],
+  },
+  {
     id: 9,
     slug: "building-a-place-where-mathematics-moves",
     variant: "hero",

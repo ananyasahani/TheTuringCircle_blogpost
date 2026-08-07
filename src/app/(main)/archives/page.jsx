@@ -1,12 +1,11 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getAllPosts } from "@/services/posts.service";
+import { getAllPosts, getAllPostsStatic } from "@/services/posts.service";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
-
-const posts = getAllPosts();
 
 // Group posts by a rough "time bucket" from their meta string
 function groupByTime(posts) {
@@ -20,8 +19,6 @@ function groupByTime(posts) {
   return Object.entries(groups).filter(([, items]) => items.length > 0);
 }
 
-const grouped = groupByTime(posts);
-
 const fadeIn = {
   hidden: { opacity: 0, x: -16 },
   visible: (i) => ({
@@ -32,6 +29,20 @@ const fadeIn = {
 };
 
 export default function ArchivesPage() {
+  const [posts, setPosts] = useState(() => getAllPostsStatic());
+
+  useEffect(() => {
+    let alive = true;
+    getAllPosts().then((data) => {
+      if (alive && data.length) setPosts(data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const grouped = useMemo(() => groupByTime(posts), [posts]);
+
   return (
     <SmoothScroll>
       <div className="tc-grid">

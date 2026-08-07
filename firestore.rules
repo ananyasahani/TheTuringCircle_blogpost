@@ -21,28 +21,39 @@ service cloud.firestore {
     }
 
     // DRAFTS — only the author and moderators
+    // Titles may be a plain string or a [lead, highlight] tuple (list).
+    function hasValidTitle() {
+      return request.resource.data.title is string
+             || request.resource.data.title is list;
+    }
+
     match /drafts/{draftId} {
       allow read: if isOwner(resource.data.authorId) || isModerator();
       allow create: if isSignedIn()
                     && request.resource.data.authorId == request.auth.uid
-                    && request.resource.data.title is string
+                    && hasValidTitle()
                     && request.resource.data.content is string;
       allow update: if isOwner(resource.data.authorId)
                     && request.resource.data.authorId == resource.data.authorId;
       allow delete: if isOwner(resource.data.authorId) || isModerator();
     }
 
-    // PUBLISHED — anyone can read, only Cloud Functions can create
+    // PUBLISHED — anyone can read. Client-only publishing: a signed-in author
+    // may create/update their OWN published post (moderators, any post).
     match /published/{postId} {
       allow read: if true;
-      allow create: if false;   // only via Cloud Function
+      allow create: if isSignedIn()
+                    && request.resource.data.authorId == request.auth.uid
+                    && hasValidTitle()
+                    && request.resource.data.content is string;
       allow update: if isModerator()
-                    || isOwner(resource.data.authorId);
-      allow delete: if false;   // only soft-delete via updating visible=false
+                    || (isOwner(resource.data.authorId)
+                        && request.resource.data.authorId == resource.data.authorId);
+      allow delete: if isOwner(resource.data.authorId) || isModerator();
 
       // COMMENTS — subcollection on each published post
       match /comments/{commentId} {
-        allow read: if isSignedIn();
+        allow read: if true;
         allow create: if isVerified() && isNotBlocked()
                       && request.resource.data.authorId == request.auth.uid
                       && request.resource.data.content is string;
@@ -58,6 +69,17 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       allow write: if isOwner(userId);
+    }
+
+    // SUBSCRIBERS — newsletter signups. Anyone may subscribe (create their own
+    // doc keyed by email); the list is never client-readable. Moderators can
+    // clean up entries.
+    match /subscribers/{email} {
+      allow read: if false;
+      allow create: if request.resource.data.email is string
+                    && request.resource.data.email == email;
+      allow update: if false;
+      allow delete: if isModerator();
     }
   }
 }

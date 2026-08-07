@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { getPostBySlug } from "@/services/posts.service";
+import { getPostBySlug, getPostBySlugStatic } from "@/services/posts.service";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
@@ -11,7 +12,22 @@ import Link from "next/link";
 
 export default function PostPage() {
   const params = useParams();
-  const post = params.slug ? getPostBySlug(params.slug) : null;
+  const slug = params.slug;
+  // Instant static render, then swap in the Firestore post if present.
+  const [post, setPost] = useState(() =>
+    slug ? getPostBySlugStatic(slug) ?? null : null,
+  );
+
+  useEffect(() => {
+    if (!slug) return;
+    let alive = true;
+    getPostBySlug(slug).then((data) => {
+      if (alive && data) setPost(data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [slug]);
 
   if (!post) {
     return (

@@ -1,12 +1,11 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getAllPosts } from "@/services/posts.service";
+import { getAllPosts, getAllPostsStatic } from "@/services/posts.service";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
-
-const posts = getAllPosts();
 
 // Derive unique authors with their post counts and fields
 function deriveAuthors(posts) {
@@ -30,8 +29,6 @@ function deriveAuthors(posts) {
   return Array.from(map.values()).sort((a, b) => b.postCount - a.postCount);
 }
 
-const authors = deriveAuthors(posts);
-
 const cardAnim = {
   hidden: { opacity: 0, y: 20, filter: "blur(4px)" },
   visible: (i) => ({
@@ -43,6 +40,20 @@ const cardAnim = {
 };
 
 export default function NetworkPage() {
+  const [posts, setPosts] = useState(() => getAllPostsStatic());
+
+  useEffect(() => {
+    let alive = true;
+    getAllPosts().then((data) => {
+      if (alive && data.length) setPosts(data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const authors = useMemo(() => deriveAuthors(posts), [posts]);
+
   return (
     <SmoothScroll>
       <div className="tc-grid">

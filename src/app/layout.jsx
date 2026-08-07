@@ -1,5 +1,6 @@
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import EasterEggs from "@/components/providers/EasterEggs";
 
 export const metadata = {
   title: {
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>{children}</AuthProvider>
+        <EasterEggs />
       </body>
     </html>
   );

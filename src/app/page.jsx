@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -9,10 +9,8 @@ import Navbar from "@/components/layout/Navbar";
 import BlurText from "@/components/reactbits/BlurText";
 import DecryptedText from "@/components/reactbits/DecryptedText";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
-import { getAllPosts } from "@/services/posts.service";
-
-const posts = getAllPosts();
-const featuredPosts = posts.slice(0, 4);
+import { getAllPosts, getAllPostsStatic } from "@/services/posts.service";
+import { subscribeEmail } from "@/services/newsletter.service";
 
 function titleOf(post) {
   return Array.isArray(post.title) ? post.title.join("") : post.title;
@@ -25,10 +23,36 @@ function readTime(post) {
 
 export default function Homepage() {
   const [subscribed, setSubscribed] = useState(false);
+  const [newsletterBusy, setNewsletterBusy] = useState(false);
+  const [newsletterError, setNewsletterError] = useState("");
+  // Render instantly with static data, then swap in Firestore posts.
+  const [posts, setPosts] = useState(() => getAllPostsStatic());
 
-  const submitNewsletter = (event) => {
+  useEffect(() => {
+    let alive = true;
+    getAllPosts().then((data) => {
+      if (alive && data.length) setPosts(data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const featuredPosts = posts.slice(0, 4);
+
+  const submitNewsletter = async (event) => {
     event.preventDefault();
-    setSubscribed(true);
+    const email = new FormData(event.currentTarget).get("email");
+    setNewsletterError("");
+    setNewsletterBusy(true);
+    try {
+      await subscribeEmail(String(email || ""));
+      setSubscribed(true);
+    } catch (err) {
+      setNewsletterError(err?.message || "Something went wrong. Try again.");
+    } finally {
+      setNewsletterBusy(false);
+    }
   };
 
   return (
@@ -171,14 +195,23 @@ export default function Homepage() {
                 <div>
                   <input
                     id="cinematic-email"
+                    name="email"
                     type="email"
                     placeholder="reader@domain.edu"
                     required
+                    disabled={newsletterBusy}
                   />
-                  <button type="submit" aria-label="Join the weekly signal">
+                  <button
+                    type="submit"
+                    aria-label="Join the weekly signal"
+                    disabled={newsletterBusy}
+                  >
                     <ArrowRight size={20} strokeWidth={1.5} />
                   </button>
                 </div>
+                {newsletterError && (
+                  <p className="cinematic-error">{newsletterError}</p>
+                )}
               </>
             )}
           </form>

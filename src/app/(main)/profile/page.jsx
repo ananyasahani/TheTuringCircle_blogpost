@@ -1,17 +1,15 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { getAllPosts } from "@/services/posts.service";
+import {
+  getAllPosts,
+  getAllPostsStatic,
+  seedPublishedFromStatic,
+} from "@/services/posts.service";
+import { useAuth } from "@/components/providers/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
-
-const posts = getAllPosts();
-const totalViews = posts.reduce((sum, p) => {
-  if (!p.stats?.views) return sum;
-  const v = p.stats.views.replace("k", "000").replace(".", "");
-  return sum + parseInt(v, 10);
-}, 0);
-const totalComments = posts.reduce((sum, p) => sum + (p.stats?.comments || 0), 10);
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16, filter: "blur(4px)" },
@@ -24,6 +22,50 @@ const fadeUp = {
 };
 
 export default function ProfilePage() {
+  const { user, signOut } = useAuth();
+  const [posts, setPosts] = useState(() => getAllPostsStatic());
+  const [fromDb, setFromDb] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [seedMsg, setSeedMsg] = useState("");
+
+  const loadPosts = () => {
+    getAllPosts().then((data) => {
+      if (data.length) {
+        setPosts(data);
+        // getAllPosts returns Firestore docs (string ids) vs static (number ids)
+        setFromDb(typeof data[0]?.id === "string");
+      }
+    });
+  };
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const handleSeed = async () => {
+    if (!user) return;
+    setSeeding(true);
+    setSeedMsg("");
+    try {
+      const n = await seedPublishedFromStatic(user.uid);
+      setSeedMsg(
+        n > 0 ? `Seeded ${n} posts into Firestore.` : "Already seeded.",
+      );
+      loadPosts();
+    } catch (err) {
+      setSeedMsg(`Seed failed: ${err?.message || err}`);
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  // Honest stats: real published count + real comment total (0 until comments
+  // exist). No fabricated view numbers.
+  const totalComments = useMemo(
+    () => posts.reduce((sum, p) => sum + (p.stats?.comments || 0), 0),
+    [posts],
+  );
+
   return (
     <SmoothScroll>
       <div className="tc-grid">
@@ -40,16 +82,38 @@ export default function ProfilePage() {
               custom={0}
             >
               <div className="profile-avatar-ring">
-                <span className="material-symbols-outlined" style={{ fontSize: "2rem", color: "var(--gold-bright)" }}>
-                  account_circle
-                </span>
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    referrerPolicy="no-referrer"
+                    style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <span className="material-symbols-outlined" style={{ fontSize: "2rem", color: "var(--gold-bright)" }}>
+                    account_circle
+                  </span>
+                )}
               </div>
               <div>
-                <h1 className="subpage-title" style={{ marginBottom: "0.25rem" }}>Reader</h1>
+                <h1 className="subpage-title" style={{ marginBottom: "0.25rem" }}>
+                  {user?.name || "Reader"}
+                </h1>
                 <p className="subpage-subtitle" style={{ marginBottom: 0 }}>
-                  Member of The Turing Circle
+                  {user
+                    ? `${user.role === "moderator" ? "Moderator" : "Member"} · ${user.email ?? ""}`
+                    : "Member of The Turing Circle"}
                 </p>
               </div>
+              {user && (
+                <button
+                  type="button"
+                  className="profile-signout"
+                  onClick={() => signOut()}
+                >
+                  Sign out
+                </button>
+              )}
             </motion.div>
 
             {/* Stats */}
@@ -65,14 +129,41 @@ export default function ProfilePage() {
                 <span className="profile-stat-label">Papers in Library</span>
               </div>
               <div className="profile-stat glass-panel">
-                <span className="profile-stat-num">{(totalViews / 1000).toFixed(1)}k</span>
-                <span className="profile-stat-label">Total Views</span>
-              </div>
-              <div className="profile-stat glass-panel">
                 <span className="profile-stat-num">{totalComments.toLocaleString()}</span>
                 <span className="profile-stat-label">Comments</span>
               </div>
+              <div className="profile-stat glass-panel">
+                <span className="profile-stat-num">
+                  {fromDb ? "Live" : "Static"}
+                </span>
+                <span className="profile-stat-label">Data source</span>
+              </div>
             </motion.div>
+
+            {/* Admin: one-time seed of the static posts into Firestore */}
+            {user && !fromDb && (
+              <motion.div
+                className="profile-seed"
+                initial="hidden"
+                animate="visible"
+                variants={fadeUp}
+                custom={0.15}
+              >
+                <div>
+                  <strong>Firestore is empty.</strong> Seed the {posts.length}{" "}
+                  starter posts into the live database.
+                </div>
+                <button
+                  type="button"
+                  className="profile-seed-btn"
+                  onClick={handleSeed}
+                  disabled={seeding}
+                >
+                  {seeding ? "Seeding…" : "Seed posts"}
+                </button>
+                {seedMsg && <span className="profile-seed-msg">{seedMsg}</span>}
+              </motion.div>
+            )}
 
             {/* Reading list placeholder */}
             <motion.section
