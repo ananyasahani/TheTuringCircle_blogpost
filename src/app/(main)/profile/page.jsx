@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   getAllPosts,
@@ -115,6 +116,11 @@ export default function ProfilePage() {
                 </button>
               )}
             </motion.div>
+
+            {/* Write a new post */}
+            <Link href="/editor/new" className="profile-write">
+              ✎ Write a post
+            </Link>
 
             {/* Stats */}
             <motion.div

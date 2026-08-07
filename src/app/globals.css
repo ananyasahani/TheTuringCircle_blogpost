@@ -3447,3 +3447,205 @@ body {
     animation: none;
   }
 }
+
+/* ── Editor ───────────────────────────────────────────────────────────── */
+.editor-shell {
+  min-height: 100svh;
+  background: var(--cinema-black);
+  color: var(--cinema-white);
+}
+
+.editor-gate {
+  min-height: 60svh;
+  display: grid;
+  place-content: center;
+  color: var(--cinema-muted);
+  font-family: var(--journal-mono);
+  font-size: 0.8rem;
+}
+
+.editor-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 120px 1.5rem 6rem;
+}
+
+.editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+}
+
+.editor-back {
+  color: var(--cinema-muted);
+  font-family: var(--journal-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 200ms ease;
+}
+
+.editor-back:hover {
+  color: var(--cinema-white);
+}
+
+.editor-publish {
+  font-family: var(--journal-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #000;
+  background: var(--brass);
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+.editor-publish:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.editor-publish:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.editor-error {
+  margin-bottom: 1.2rem;
+  color: var(--cinema-red);
+  font-family: var(--journal-mono);
+  font-size: 0.72rem;
+}
+
+.editor-title {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--cinema-white);
+  font-family: var(--journal-serif);
+  font-size: 3.2rem;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.editor-title::placeholder {
+  color: rgba(245, 246, 248, 0.25);
+}
+
+.editor-slug {
+  margin-top: 0.4rem;
+  color: var(--cinema-muted);
+  font-family: var(--journal-mono);
+  font-size: 0.62rem;
+}
+
+.editor-excerpt {
+  width: 100%;
+  margin-top: 1.5rem;
+  background: transparent;
+  border: none;
+  border-left: 2px solid var(--cinema-line);
+  padding-left: 1rem;
+  outline: none;
+  resize: vertical;
+  color: #c4c7cc;
+  font-family: var(--journal-sans);
+  font-size: 1.05rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+.editor-excerpt::placeholder {
+  color: rgba(245, 246, 248, 0.22);
+}
+
+.editor-fields {
+  display: grid;
+  gap: 0.8rem;
+  margin: 2rem 0;
+}
+
+.editor-field {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--cinema-line);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  outline: none;
+  color: var(--cinema-white);
+  font-family: var(--journal-mono);
+  font-size: 0.75rem;
+}
+
+.editor-field::placeholder {
+  color: rgba(245, 246, 248, 0.3);
+}
+
+.editor-field:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.editor-body {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--cinema-line);
+  padding-top: 2rem;
+}
+
+.tiptap-surface {
+  outline: none;
+  min-height: 40svh;
+  color: #d3d5da;
+  font-family: var(--journal-sans);
+  font-size: 1.1rem;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+.tiptap-surface:focus {
+  outline: none;
+}
+
+.tiptap-surface h3 {
+  margin: 2rem 0 0.5rem;
+  color: var(--cinema-white);
+  font-family: var(--journal-serif);
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.tiptap-surface p {
+  margin: 0 0 1.2rem;
+}
+
+.tiptap-surface p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: rgba(245, 246, 248, 0.25);
+}
+
+/* "Write" call-to-action on the profile */
+.profile-write {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  font-family: var(--journal-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #000;
+  background: var(--brass);
+  border-radius: 999px;
+  padding: 0.7rem 1.4rem;
+  transition: transform 200ms ease;
+}
+
+.profile-write:hover {
+  transform: translateY(-1px);
+}
