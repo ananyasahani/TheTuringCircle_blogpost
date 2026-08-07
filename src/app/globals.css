@@ -1888,7 +1888,7 @@ input {
 }
 
 .post-container {
-  max-width: 980px;
+  max-width: 1120px;
   padding-top: 120px;
 }
 
@@ -1913,27 +1913,75 @@ input {
   border-radius: 0;
 }
 
+/* Editorial body: a generous serif measure, centred under the header with a
+   hairline "spine" on the left of the column. The spine's padding is folded
+   into the block width so the whole thing stays visually centred. */
 .post-body {
-  max-width: 690px;
-  margin: 0 auto;
-  color: #c7c4b9;
-  font-size: 1.06rem;
+  width: 100%;
+  max-width: calc(44rem + 3.5rem);
+  margin: 4rem auto 0;
+  padding-left: clamp(1.25rem, 4vw, 3.5rem);
+  border-left: 1px solid var(--cinema-line);
+  color: #d7d3c6;
+  font-family: var(--journal-serif);
+  font-size: 1.42rem;
+  line-height: 1.68;
+  letter-spacing: 0.003em;
 }
 
-.post-paragraph:first-child::first-letter {
+.post-paragraph {
+  margin-bottom: 1.7rem;
+}
+
+/* Lead paragraph — larger, lighter, sets the tone. */
+.post-body .post-paragraph:first-of-type {
+  font-size: 1.62rem;
+  line-height: 1.55;
+  color: #e6e2d6;
+}
+
+.post-paragraph:first-of-type::first-letter {
   float: left;
   color: var(--brass);
   font-family: var(--journal-serif);
-  font-size: 5.2rem;
-  line-height: 0.76;
-  padding: 0.3rem 0.5rem 0 0;
+  font-size: 5.6rem;
+  font-weight: 600;
+  line-height: 0.7;
+  padding: 0.35rem 0.6rem 0 0;
 }
 
+/* Section headings with a small gold rule above — editorial signposting. */
 .post-h3 {
+  position: relative;
+  margin-top: 3.5rem;
+  margin-bottom: 1rem;
+  padding-top: 1.6rem;
   font-family: var(--journal-serif);
-  font-size: 2.4rem;
-  font-weight: 500;
+  font-size: 2.15rem;
+  font-weight: 600;
+  line-height: 1.1;
   letter-spacing: 0;
+  color: var(--cinema-white);
+}
+
+.post-h3::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2.2rem;
+  height: 2px;
+  background: var(--brass);
+}
+
+@media (max-width: 720px) {
+  .post-body {
+    font-size: 1.28rem;
+    padding-left: 1.1rem;
+  }
+  .post-body .post-paragraph:first-of-type {
+    font-size: 1.42rem;
+  }
 }
 
 @media (max-width: 900px) {
