@@ -3,30 +3,38 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * HelixDrop — a small, on-brand take on Helix Jump for the blog side gutter.
+ * HelixDrop — a small Helix-Jump-style game for the blog side gutter.
  *
- * A stack of rotating rings descends; each ring has segments that are either
- * solid (bounce), a gap (fall through to the next ring), or a trap (game over).
- * Rotate the tower with drag or ←/→ to line a gap up under the ball. Score is
- * how deep you get. Desktop-only (there's no room on narrow screens), pauses
- * when off-screen.
+ * A stack of rotating rings; the ball bounces on the FRONT rim of the top ring.
+ * Spin the tower (drag or ←/→) to line a gap up under the ball so it drops to
+ * the next ring. Solid = bounce, gap = drop (score +1), trap (red) = game over.
+ * Desktop-only, pauses when off-screen.
+ *
+ * Geometry note: rings are ellipses drawn as
+ *   point(θ) = (cx + r·cosθ, cy + r·squash·sinθ)
+ * so θ = +π/2 is the bottom-centre = the FRONT rim the ball rests on. The
+ * "active" segment (under the ball) is the one whose arc covers θ = π/2.
  */
 
-const SEGMENTS = 12; // slices per ring
+const SEGMENTS = 12;
 const W = 300;
 const H = 460;
+const R = 88;
+const SQUASH = 0.42;
+const RIM = R * SQUASH; // vertical offset of front rim from ring centre
+const TOP_Y = 128; // screen-y of the top (active) ring's centre
+const RING_GAP = 66;
+const BALL_R = 9;
+const GRAVITY = 0.4;
+const BOUNCE = -7.2;
+const STEP = (Math.PI * 2) / SEGMENTS;
 
-// Ring difficulty grows with depth: fewer gaps, more traps.
 function makeRing(depth) {
   const cells = new Array(SEGMENTS).fill("solid");
-  // always at least one gap
   const gapCount = Math.max(1, 3 - Math.floor(depth / 6));
-  const gaps = new Set();
-  while (gaps.size < gapCount) {
-    gaps.add(Math.floor((depth * 7 + gaps.size * 5 + 3) % SEGMENTS));
+  for (let k = 0; k < gapCount; k++) {
+    cells[(depth * 7 + k * 5 + 3) % SEGMENTS] = "gap";
   }
-  gaps.forEach((g) => (cells[g] = "gap"));
-  // traps appear after a few levels, never on a gap
   const trapCount = Math.min(4, Math.floor(depth / 3));
   let placed = 0;
   let i = (depth * 5 + 1) % SEGMENTS;
@@ -44,10 +52,10 @@ function makeRing(depth) {
 
 export default function HelixDrop() {
   const canvasRef = useRef(null);
+  const stateRef = useRef(null);
   const [status, setStatus] = useState("idle"); // idle | playing | over
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
-  const stateRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -57,15 +65,14 @@ export default function HelixDrop() {
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     ctx.scale(dpr, dpr);
+    const cx = W / 2;
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    // game state
     const s = {
       depth: 0,
-      rotation: 0, // radians
+      rotation: 0,
       rotVel: 0,
-      ball: { y: 120, vy: 0 },
+      ballY: TOP_Y - 40,
+      vy: 0,
       rings: [],
       running: false,
       dead: false,
@@ -75,45 +82,55 @@ export default function HelixDrop() {
 
     const reset = () => {
       s.depth = 0;
-      s.rotation = 0;
+      s.rotation = 0.3;
       s.rotVel = 0;
-      s.ball = { y: 120, vy: 0 };
-      s.rings = Array.from({ length: 40 }, (_, d) => makeRing(d));
+      s.ballY = TOP_Y - 40;
+      s.vy = 0;
+      s.rings = Array.from({ length: 48 }, (_, d) => makeRing(d));
       s.dead = false;
       s.shake = 0;
       setScore(0);
     };
     reset();
 
-    // ── input ────────────────────────────────────────────────────────────
+    // Segment index whose arc covers θ = π/2 (the front rim, under the ball).
+    const activeIndex = () => {
+      const raw = Math.floor((Math.PI / 2 - s.rotation) / STEP);
+      return ((raw % SEGMENTS) + SEGMENTS) % SEGMENTS;
+    };
+
+    // ── input ──────────────────────────────────────────────────────────
     let dragging = false;
     let lastX = 0;
     const onDown = (e) => {
-      if (s.dead || !s.running) return;
       dragging = true;
-      lastX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+      lastX = e.clientX;
+      canvas.focus();
     };
     const onMove = (e) => {
       if (!dragging) return;
-      const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-      s.rotation += (x - lastX) * 0.01;
-      lastX = x;
+      s.rotation += (e.clientX - lastX) * 0.012;
+      lastX = e.clientX;
     };
     const onUp = () => {
       dragging = false;
     };
     const onKey = (e) => {
       if (!s.running || s.dead) return;
-      if (e.key === "ArrowLeft") s.rotation -= 0.26;
-      if (e.key === "ArrowRight") s.rotation += 0.26;
+      if (e.key === "ArrowLeft" || e.key === "a") {
+        s.rotation -= 0.28;
+        e.preventDefault();
+      } else if (e.key === "ArrowRight" || e.key === "d") {
+        s.rotation += 0.28;
+        e.preventDefault();
+      }
     };
-
     canvas.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
-    canvas.addEventListener("keydown", onKey);
+    // key handling on window so focus isn't required, but only act while playing
+    window.addEventListener("keydown", onKey);
 
-    // pause when off-screen
     let onScreen = true;
     const io = new IntersectionObserver(
       (entries) => (onScreen = entries[0]?.isIntersecting ?? true),
@@ -121,101 +138,69 @@ export default function HelixDrop() {
     );
     io.observe(canvas);
 
-    // ── constants for layout ──────────────────────────────────────────────
-    const cx = W / 2;
-    const ballScreenY = 150; // ball's fixed screen position
-    const ringGap = 74; // vertical spacing between rings
-    const ringR = 96; // ring radius
-    const gravity = 0.42;
-    const bounce = -8.4;
-
-    // Which segment sits at the front (under the ball). Must match the "front"
-    // test used in drawRing: the segment whose mid-angle is nearest angle 0.
-    const step = (Math.PI * 2) / SEGMENTS;
-    const frontSegment = () => {
-      let best = 0;
-      let bestCos = -2;
-      for (let i = 0; i < SEGMENTS; i++) {
-        const mid = s.rotation + i * step + step / 2;
-        const c = Math.cos(mid);
-        if (c > bestCos) {
-          bestCos = c;
-          best = i;
-        }
-      }
-      return best;
-    };
+    const frontRimY = TOP_Y + RIM; // where the ball rests on the top ring
 
     let raf;
     const loop = () => {
       raf = requestAnimationFrame(loop);
       if (!onScreen) return;
 
-      // physics only while playing
       if (s.running && !s.dead) {
-        s.rotation += s.rotVel;
-        s.rotVel *= 0.9;
+        s.vy += GRAVITY;
+        s.ballY += s.vy;
 
-        s.ball.vy += gravity;
-        s.ball.y += s.ball.vy;
-
-        // ball meets the top ring's plane
-        if (s.ball.y >= ballScreenY + 6 && s.ball.vy > 0) {
-          const front = frontSegment();
-          const cell = s.rings[s.depth]?.[front] ?? "solid";
+        if (s.ballY >= frontRimY - BALL_R && s.vy > 0) {
+          const cell = s.rings[s.depth]?.[activeIndex()] ?? "solid";
           if (cell === "gap") {
-            // fall through to next ring
+            // drop through: tower shifts up one level
             s.depth += 1;
-            s.ball.y = ballScreenY - ringGap + 6;
+            s.ballY = TOP_Y - 30;
+            s.vy = 2;
             setScore(s.depth);
-            if (s.depth > best) setBest(s.depth);
-            // top up the ring buffer
-            if (s.rings.length - s.depth < 12) {
+            setBest((b) => Math.max(b, s.depth));
+            if (s.rings.length - s.depth < 14) {
               const start = s.rings.length;
-              for (let k = 0; k < 12; k++) s.rings.push(makeRing(start + k));
+              for (let k = 0; k < 14; k++) s.rings.push(makeRing(start + k));
             }
           } else if (cell === "trap") {
             s.dead = true;
-            s.shake = 12;
+            s.shake = 14;
             setStatus("over");
           } else {
-            s.ball.vy = bounce;
+            s.ballY = frontRimY - BALL_R;
+            s.vy = BOUNCE;
           }
         }
       }
 
-      // ── render ───────────────────────────────────────────────────────────
+      // ── render ─────────────────────────────────────────────────────────
       ctx.clearRect(0, 0, W, H);
-      const shakeX = s.shake > 0 ? (Math.random() - 0.5) * s.shake : 0;
-      if (s.shake > 0) s.shake *= 0.85;
+      const sx = s.shake > 0 ? (Math.random() - 0.5) * s.shake : 0;
+      if (s.shake > 0) s.shake *= 0.86;
       ctx.save();
-      ctx.translate(shakeX, 0);
+      ctx.translate(sx, 0);
 
-      // draw a handful of rings descending from current depth
-      for (let d = 0; d < 6; d++) {
-        const ringIndex = s.depth + d;
-        const ring = s.rings[ringIndex];
+      const active = activeIndex();
+      for (let d = 5; d >= 0; d--) {
+        const ring = s.rings[s.depth + d];
         if (!ring) continue;
-        const y = ballScreenY + d * ringGap;
+        const y = TOP_Y + d * RING_GAP;
         const fade = 1 - d * 0.14;
-        drawRing(ctx, ring, cx, y, ringR, s.rotation, fade, reduce);
+        drawRing(ctx, ring, cx, y, s.rotation, fade, d === 0 ? active : -1);
       }
 
-      // the ball
-      const by = Math.min(s.ball.y, ballScreenY);
+      // ball
       ctx.beginPath();
-      ctx.arc(cx, by, 9, 0, Math.PI * 2);
+      ctx.arc(cx, Math.min(s.ballY, frontRimY - BALL_R + 2), BALL_R, 0, Math.PI * 2);
       ctx.fillStyle = "#d4af37";
       ctx.shadowColor = "rgba(212,175,55,0.6)";
       ctx.shadowBlur = 14;
       ctx.fill();
       ctx.shadowBlur = 0;
-
       ctx.restore();
     };
     loop();
 
-    // expose reset for the button
     s._reset = reset;
 
     return () => {
@@ -224,9 +209,9 @@ export default function HelixDrop() {
       canvas.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      canvas.removeEventListener("keydown", onKey);
+      window.removeEventListener("keydown", onKey);
     };
-  }, [best]);
+  }, []);
 
   const start = () => {
     const s = stateRef.current;
@@ -256,7 +241,9 @@ export default function HelixDrop() {
         {status !== "playing" && (
           <div className="helix-overlay">
             <p>
-              {status === "over" ? `You reached depth ${score}.` : "A little game."}
+              {status === "over"
+                ? `You reached depth ${score}.`
+                : "A little game."}
             </p>
             <button type="button" onClick={start}>
               {status === "over" ? "Again" : "Play"}
@@ -269,30 +256,32 @@ export default function HelixDrop() {
   );
 }
 
-// Draw one ring as an arc of colored segments. The front segment (under the
-// ball) is emphasized so the player can read what they're about to land on.
-function drawRing(ctx, ring, cx, y, r, rotation, fade, reduce) {
-  const step = (Math.PI * 2) / SEGMENTS;
-  // vertical squash to fake perspective
-  const squash = 0.38;
+// Draw one ring. Back half (sinθ < 0) first, then front half, so the near rim
+// overlaps. `activeIdx` (or -1) marks the segment under the ball — drawn brightest.
+function drawRing(ctx, ring, cx, y, rotation, fade, activeIdx) {
+  const order = [];
   for (let i = 0; i < SEGMENTS; i++) {
+    const mid = rotation + i * STEP + STEP / 2;
+    order.push({ i, front: Math.sin(mid) > 0 });
+  }
+  order.sort((a, b) => (a.front === b.front ? 0 : a.front ? 1 : -1));
+
+  for (const { i, front } of order) {
     const cell = ring[i];
     if (cell === "gap") continue;
-    const a0 = rotation + i * step;
-    const a1 = a0 + step * 0.9;
-    // is this the front segment (near angle pointing "down"/toward viewer)?
-    const mid = a0 + step / 2;
-    const front = Math.cos(mid) > 0.86; // near 0 rad = front
+    const a0 = rotation + i * STEP;
+    const a1 = a0 + STEP * 0.92;
     ctx.beginPath();
-    ctx.ellipse(cx, y, r, r * squash, 0, a0, a1);
-    ctx.lineWidth = 13;
-    ctx.lineCap = "butt";
+    ctx.ellipse(cx, y, R, R * SQUASH, 0, a0, a1);
+    ctx.lineWidth = 12;
     if (cell === "trap") {
-      ctx.strokeStyle = `rgba(220,119,104,${0.85 * fade})`;
+      ctx.strokeStyle = `rgba(220,119,104,${0.9 * fade})`;
+    } else if (i === activeIdx) {
+      ctx.strokeStyle = `rgba(212,175,55,${0.95 * fade})`; // gold: aim here
     } else {
       ctx.strokeStyle = front
-        ? `rgba(245,246,248,${0.95 * fade})`
-        : `rgba(140,150,165,${0.5 * fade})`;
+        ? `rgba(230,232,238,${0.9 * fade})`
+        : `rgba(120,130,145,${0.45 * fade})`;
     }
     ctx.stroke();
   }
