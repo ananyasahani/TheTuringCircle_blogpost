@@ -2447,6 +2447,13 @@ body {
   animation: liquid-spiral-in 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Static-image fallback (Lite mode, WebGL blocked, mobile). Fills like the
+   canvas; object-fit cover so the ribbon reads the same. */
+.liquid-spiral-static {
+  object-fit: cover;
+  cursor: default;
+}
+
 @keyframes liquid-spiral-in {
   from {
     opacity: 0;
@@ -3922,4 +3929,73 @@ body {
   font-family: var(--journal-mono);
   font-size: 0.58rem;
   letter-spacing: 0.05em;
+}
+
+/* ── Lite mode ───────────────────────────────────────────────────────────
+   Applied as `.lite` on <html> by PerfProvider when WebGL is unavailable,
+   reduced-motion is set, on touch devices, or on weaker hardware — and when
+   the user manually opts in. Two goals: (1) no continuous WebGL (handled in
+   JS — the static image renders instead), (2) drop the expensive
+   backdrop-filter blurs, which are the biggest cost on weak GPUs. */
+.lite .editorial-manifesto,
+.lite .flow-stories,
+.lite .journal-index,
+.lite .cinematic-newsletter,
+.lite .cinematic-footer,
+.lite .nav-glass,
+.lite .post-ambient {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Solid-ish scrims so text stays legible without the blur doing the work. */
+.lite .editorial-manifesto { background: rgba(0, 0, 0, 0.9); }
+.lite .flow-stories { background: rgba(0, 0, 0, 0.88); }
+.lite .journal-index { background: rgba(3, 3, 3, 0.92); }
+.lite .cinematic-newsletter { background: rgba(0, 0, 0, 0.9); }
+.lite .cinematic-footer { background: rgba(3, 3, 3, 0.95); }
+
+/* The static ribbon shouldn't animate in Lite mode. */
+.lite .liquid-spiral,
+.lite .cinematic-underlay .liquid-spiral {
+  animation: none;
+}
+
+/* Post ambient backdrop: keep it subtle but cheap (no blur; slightly dimmer). */
+.lite .post-ambient {
+  opacity: 0.28;
+}
+
+/* ── Perf toggle control (footer / nav) ─────────────────────────────────── */
+.perf-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--journal-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cinema-muted, #92969d);
+  background: transparent;
+  border: 1px solid var(--cinema-line, rgba(245, 246, 248, 0.16));
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+
+.perf-toggle:hover {
+  color: var(--cinema-white, #f5f6f8);
+  border-color: rgba(245, 246, 248, 0.36);
+}
+
+.perf-toggle .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brass, #d4af37);
+}
+
+.lite .perf-toggle .dot {
+  background: var(--cinema-muted, #92969d);
 }

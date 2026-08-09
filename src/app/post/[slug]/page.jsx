@@ -8,11 +8,13 @@ import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
 import SnakeGame from "@/components/visuals/SnakeGame";
+import { usePerf } from "@/components/providers/PerfProvider";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function PostPage() {
   const params = useParams();
+  const { lite } = usePerf();
   const slug = params.slug;
   // Instant static render, then swap in the Firestore post if present.
   const [post, setPost] = useState(() =>
@@ -51,6 +53,7 @@ export default function PostPage() {
               mode="flow"
               iridescence={0.6}
               quality="ambient"
+              lite={lite}
             />
             <div className="post-ambient-veil" />
           </div>

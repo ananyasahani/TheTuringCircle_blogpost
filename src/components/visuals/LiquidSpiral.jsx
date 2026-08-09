@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 /**
@@ -216,10 +216,15 @@ export default function LiquidSpiral({
   // Render-cost controls. "ambient" caps DPR + frame rate for cheap
   // background use (e.g. behind blog posts); "hero" runs full quality.
   quality = "hero",
+  // When true, skip WebGL entirely and render the static image (Lite mode).
+  lite = false,
 }) {
   const canvasRef = useRef(null);
+  // Falls back to the static image if WebGL can't start (e.g. Brave Shields).
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    if (lite) return; // Lite mode renders the <img> below — no WebGL work.
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -234,11 +239,19 @@ export default function LiquidSpiral({
     const targetFps = ambient ? 30 : 60;
     const frameInterval = 1 / targetFps;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: !ambient,
-      powerPreference: ambient ? "low-power" : "high-performance",
-    });
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: !ambient,
+        powerPreference: ambient ? "low-power" : "high-performance",
+        failIfMajorPerformanceCaveat: false,
+      });
+    } catch {
+      // WebGL blocked/unavailable — show the static image instead.
+      setFailed(true);
+      return;
+    }
     renderer.setClearColor(0x000000, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
 
@@ -338,9 +351,30 @@ export default function LiquidSpiral({
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    canvas.addEventListener("pointerleave", onPointerLeave);
     resize();
+
+    if (reduceMotion) {
+      // Honour reduced-motion: draw a single still frame and stop. No loop,
+      // no pointer tracking, zero ongoing GPU cost.
+      uniforms.uTime.value = 0;
+      renderer.render(scene, camera);
+      return () => {
+        resizeObserver.disconnect();
+        io.disconnect();
+        uniforms.uTex.value?.dispose();
+        material.dispose();
+        quad.geometry.dispose();
+        renderer.dispose();
+      };
+    }
+
+    // Pointer interaction only on devices that actually hover (not touch). This
+    // removes the mobile glitch where scroll-touch drove the shader.
+    const canHover = window.matchMedia("(hover: hover)").matches;
+    if (canHover) {
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      canvas.addEventListener("pointerleave", onPointerLeave);
+    }
     render();
 
     return () => {
@@ -354,7 +388,19 @@ export default function LiquidSpiral({
       quad.geometry.dispose();
       renderer.dispose();
     };
-  }, [src, mode, iridescence, quality]);
+  }, [src, mode, iridescence, quality, lite]);
+
+  // Lite mode or a WebGL failure → render the static image instead of a canvas.
+  if (lite || failed) {
+    return (
+      <img
+        src={src}
+        alt=""
+        className="liquid-spiral liquid-spiral-static"
+        aria-hidden="true"
+      />
+    );
+  }
 
   return (
     <canvas

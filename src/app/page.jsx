@@ -9,6 +9,8 @@ import Navbar from "@/components/layout/Navbar";
 import BlurText from "@/components/reactbits/BlurText";
 import DecryptedText from "@/components/reactbits/DecryptedText";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
+import PerfToggle from "@/components/layout/PerfToggle";
+import { usePerf } from "@/components/providers/PerfProvider";
 import { getAllPosts, getAllPostsStatic } from "@/services/posts.service";
 import { subscribeEmail } from "@/services/newsletter.service";
 
@@ -22,6 +24,7 @@ function readTime(post) {
 }
 
 export default function Homepage() {
+  const { lite } = usePerf();
   const [subscribed, setSubscribed] = useState(false);
   const [newsletterBusy, setNewsletterBusy] = useState(false);
   const [newsletterError, setNewsletterError] = useState("");
@@ -63,6 +66,7 @@ export default function Homepage() {
           src="/editorial/glass-ribbon.png"
           mode="flow"
           iridescence={0.85}
+          lite={lite}
         />
       </div>
 
@@ -226,6 +230,7 @@ export default function Homepage() {
           <Link href="/network">Network</Link>
           <a href="https://ttcprojects.vercel.app">Projects</a>
         </nav>
+        <PerfToggle />
         <span>2026 / Manipal, India</span>
       </footer>
     </div>
