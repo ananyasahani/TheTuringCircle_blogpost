@@ -38,15 +38,15 @@ function webglAvailable() {
 
 function detectLite() {
   if (typeof window === "undefined") return false;
-  if (!webglAvailable()) return true;
+  if (!webglAvailable()) return true; // Brave Shields etc.
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return true;
-  // Touch / no-hover devices (phones, tablets): the effect adds little, the
-  // GPUs are weakest, and touch-driven scroll used to glitch the shader. Lite.
-  if (window.matchMedia?.("(hover: none)").matches) return true;
+  // Note: phones keep the animation — the hero→intro scroll glitch is fixed by
+  // ignoring URL-bar height changes in LiquidSpiral's resize, not by going lite.
+  // Only drop to lite on genuinely weak hardware.
   const cores = navigator.hardwareConcurrency || 8;
   const mem = navigator.deviceMemory || 8; // GB, Chromium-only; undefined elsewhere
-  if (cores <= 4) return true;
-  if (mem <= 4) return true;
+  if (cores <= 2) return true;
+  if (mem <= 2) return true;
   return false;
 }
 

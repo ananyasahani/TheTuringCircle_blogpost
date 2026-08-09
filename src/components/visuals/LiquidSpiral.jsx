@@ -297,10 +297,22 @@ export default function LiquidSpiral({
     let hoverTarget = 0;
     let frameId;
 
-    const resize = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const width = Math.max(1, bounds.width);
-      const height = Math.max(1, bounds.height);
+    // Mobile browsers change innerHeight as the URL bar hides/shows on scroll.
+    // Deriving the canvas size from the live viewport height makes the shader's
+    // resolution (and thus its look) jump mid-scroll — the hero→intro glitch.
+    // Fix: base HEIGHT on the stable screen height (unaffected by the URL bar)
+    // and only re-render on WIDTH changes (orientation / real layout changes).
+    let lastWidth = 0;
+    const resize = (force = false) => {
+      // Guard on innerWidth, not the element rect: innerWidth is unaffected by
+      // the URL bar (scroll) AND by scrollbars, so only a real width change
+      // (orientation / layout) gets through — killing the mid-scroll glitch.
+      const width = Math.max(1, window.innerWidth);
+      if (!force && Math.abs(width - lastWidth) < 2) return;
+      lastWidth = width;
+      // Height from the stable physical screen, not the URL-bar-affected viewport.
+      const screenH = window.screen?.height || window.innerHeight;
+      const height = Math.round(Math.max(window.innerHeight, screenH) + 120);
       renderer.setSize(width, height, false);
       uniforms.uResolution.value.set(width, height);
     };
@@ -349,9 +361,9 @@ export default function LiquidSpiral({
       renderer.render(scene, camera);
     };
 
-    const resizeObserver = new ResizeObserver(resize);
+    const resizeObserver = new ResizeObserver(() => resize(false));
     resizeObserver.observe(canvas);
-    resize();
+    resize(true); // initial sizing
 
     if (reduceMotion) {
       // Honour reduced-motion: draw a single still frame and stop. No loop,
