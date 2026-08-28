@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { buildExtensions } from "./tiptap-config";
+import { buildExtensions, legacyTextToDoc } from "./tiptap-config";
 import TitleField from "./TitleField";
 import "katex/dist/katex.min.css";
 import "./editor.css";
@@ -35,7 +35,13 @@ export default function Editor({
 
   const editor = useEditor({
     extensions: buildExtensions(),
-    content: typeof draft.content === "object" ? draft.content : undefined,
+    // A seeded essay stores markdown-ish text rather than a document; convert
+    // it so the editor opens with the real prose instead of a blank page that
+    // the first autosave would write over the top of it.
+    content:
+      draft.content && typeof draft.content === "object"
+        ? draft.content
+        : legacyTextToDoc(draft.content),
     // Required in the App Router: rendering immediately on the server
     // produces a hydration mismatch.
     immediatelyRender: false,

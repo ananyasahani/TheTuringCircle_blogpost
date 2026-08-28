@@ -32,14 +32,18 @@ export default function EditorPage() {
 
     (async () => {
       try {
-        // Drafts first; a published post is addressed by its slug, which
-        // can't collide with a Firestore auto-id.
-        const draft = await getDraft(id);
-        const found = draft
-          ? { kind: "draft", data: draft }
-          : await getPublishedForEdit(id).then((post) =>
-              post ? { kind: "published", data: post } : null,
-            );
+        // Published is checked FIRST because its read rule is `if true`, so a
+        // miss comes back as a clean "doesn't exist". The drafts read rule
+        // dereferences resource.data, which *throws* permission-denied for a
+        // document that isn't there — probing drafts first made every
+        // published post look deleted.
+        const published = await getPublishedForEdit(id);
+        const found = published
+          ? { kind: "published", data: published }
+          : await getDraft(id)
+              .then((draft) => (draft ? { kind: "draft", data: draft } : null))
+              // A rules error here just means "not a draft".
+              .catch(() => null);
 
         if (!alive) return;
         if (!found) return setState("missing");

@@ -68,6 +68,44 @@ export function docToPlainText(doc) {
   return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Convert a legacy markdown-ish essay (blank-line separated blocks, `###`
+ * headings) into a TipTap document.
+ *
+ * Without this, opening one of the seeded essays in the editor would show an
+ * empty document and the first autosave would write that emptiness over the
+ * real text.
+ */
+export function legacyTextToDoc(text) {
+  const content = [];
+
+  String(text ?? "")
+    .split("\n\n")
+    .forEach((block) => {
+      const trimmed = block.trim();
+      if (!trimmed) return;
+
+      if (trimmed.startsWith("###")) {
+        const [first, ...rest] = trimmed.split("\n");
+        content.push({
+          type: "heading",
+          attrs: { level: 3 },
+          content: [{ type: "text", text: first.replace(/^#{1,6}\s*/, "") }],
+        });
+        const body = rest.join(" ").trim();
+        if (body) {
+          content.push({ type: "paragraph", content: [{ type: "text", text: body }] });
+        }
+        return;
+      }
+
+      content.push({ type: "paragraph", content: [{ type: "text", text: trimmed }] });
+    });
+
+  if (content.length === 0) content.push({ type: "paragraph" });
+  return { type: "doc", content };
+}
+
 /** First non-empty paragraph of a TipTap document, for excerpt pre-fill. */
 export function docFirstParagraph(doc) {
   if (!doc?.content) return "";
