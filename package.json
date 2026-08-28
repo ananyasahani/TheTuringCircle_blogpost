@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   },
   "dependencies": {
     "@studio-freight/lenis": "^1.0.42",
@@ -28,11 +30,11 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/three": "^0.185.4",
     "eslint": "^9",
     "eslint-config-next": "^16.3.3",
-    "playwright": "^1.62.1",
     "shadcn": "^4.16.2",
     "tailwindcss": "^4"
   }

@@ -63,3 +63,8 @@ Thumbs.db
 .vscode/settings.json
 # local dev screenshots
 artifacts/
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
