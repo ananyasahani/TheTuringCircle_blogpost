@@ -2,8 +2,8 @@
 
 ## React Bits
 
-The `DecryptedText` and `SpotlightCard` components include adaptations of
-components from React Bits by David Haz.
+The `DecryptedText` component includes an adaptation of a component from
+React Bits by David Haz.
 
 Copyright (c) 2026 David Haz
 
