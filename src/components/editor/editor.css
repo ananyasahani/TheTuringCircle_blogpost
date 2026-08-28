@@ -388,15 +388,8 @@
 .tc-published-body h2 { font-size: 2.4rem; }
 .tc-published-body h3 { font-size: 1.9rem; }
 
-/* Brass drop cap on the opening paragraph, as on the legacy posts. */
-.tc-published-body > p:first-child::first-letter {
-  float: left;
-  color: var(--brass);
-  font-family: var(--journal-serif);
-  font-size: 5.2rem;
-  line-height: 0.76;
-  padding: 0.3rem 0.5rem 0 0;
-}
+/* No drop cap: the legacy essays have one, but it reads as a mistake on a
+   short opening line, so editor-written posts start plain. */
 
 /* Scroll reveal, matching the legacy framer-motion Reveal.
    Applied per block by PublishedContent, never to the container: a block that
