@@ -16,9 +16,7 @@ export default function EasterEggs() {
     const title =
       "font-family: Georgia, serif; font-size: 22px; color: #d4af37; font-style: italic;";
     const body = "font-family: monospace; font-size: 12px; color: #9dccf4;";
-    // eslint-disable-next-line no-console
     console.log("%cThe Turing Circle", title);
-    // eslint-disable-next-line no-console
     console.log(
       "%cYou found the first one. There are more. Fancy building with us? mail hello@theturingcircle — bring something clever.",
       body,
