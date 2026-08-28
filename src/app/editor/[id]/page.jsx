@@ -7,6 +7,8 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { getDraft } from "@/services/drafts.service";
 import Editor from "@/components/editor/Editor";
 import PublishDialog from "@/components/editor/PublishDialog";
+import HighlightMenu from "@/components/editor/HighlightMenu";
+import InsertMenu from "@/components/editor/InsertMenu";
 
 export default function EditorPage() {
   const { user, loading } = useRequireAuth();
@@ -66,7 +68,14 @@ export default function EditorPage() {
       <Editor
         draft={draft}
         onPublish={({ title, content }) => setPublishing({ title, content })}
-      />
+      >
+        {(editor) => (
+          <>
+            <HighlightMenu editor={editor} />
+            <InsertMenu editor={editor} />
+          </>
+        )}
+      </Editor>
       {publishing && (
         <PublishDialog
           draft={draft}

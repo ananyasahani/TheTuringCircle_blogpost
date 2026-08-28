@@ -240,3 +240,115 @@
   font-size: 0.58rem;
   color: var(--paper-muted);
 }
+
+/* ── Selection bubble ──
+   The border + shadow are load-bearing: an unbordered dark pill vanishes
+   against the dark canvas. */
+.tc-bubble {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(22, 23, 21, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.85);
+}
+
+.tc-bubble button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: rgba(238, 233, 218, 0.62);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+.tc-bubble button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--paper);
+}
+.tc-bubble button.is-active { color: var(--brass); }
+.tc-bubble .material-symbols-outlined { font-size: 1.05rem; }
+
+.tc-bubble-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 0.25rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Link entry inside the bubble */
+.tc-link-popover {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.35rem;
+}
+.tc-link-popover input {
+  width: 210px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--paper);
+  outline: none;
+  font-size: 0.78rem;
+}
+.tc-link-popover input:focus { border-color: rgba(212, 175, 55, 0.5); }
+.tc-link-popover button {
+  width: auto;
+  padding: 0 0.6rem;
+  font-family: var(--journal-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+/* ── Insert (+) menu ── */
+.tc-insert {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tc-insert-toggle,
+.tc-insert-row button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: rgba(238, 233, 218, 0.5);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+.tc-insert-toggle:hover,
+.tc-insert-row button:hover {
+  color: var(--paper);
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.05);
+}
+.tc-insert .material-symbols-outlined { font-size: 1rem; }
+
+.tc-insert-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding-left: 0.15rem;
+}
+
+@media (max-width: 820px) {
+  /* The left gutter doesn't exist on narrow screens — sit the row inline. */
+  .tc-insert { flex-wrap: wrap; max-width: 70vw; }
+}
