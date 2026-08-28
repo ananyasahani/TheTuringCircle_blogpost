@@ -7,6 +7,7 @@ import { getPostBySlug, getPostBySlugStatic } from "@/services/posts.service";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
+import PublishedContent from "@/components/editor/PublishedContent";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -86,7 +87,7 @@ export default function PostPage() {
               <div className="post-author-row">
                 {post.author.avatar ? (
                   <div className="post-avatar relative overflow-hidden">
-                    <Image src={post.author.avatar} alt={post.author.name} fill className="object-cover" />
+                    <Image src={post.author.avatar} alt={post.author.name} fill className="object-cover" unoptimized />
                   </div>
                 ) : (
                   <div className="post-avatar-initials">{post.author.initials}</div>
@@ -101,14 +102,20 @@ export default function PostPage() {
             {/* Featured Image */}
             {post.image && (
               <div className="post-featured-image-wrap relative" style={{ aspectRatio: '16/9' }}>
-                <Image src={post.image} alt={Array.isArray(post.title) ? post.title.join('') : post.title} fill className="post-featured-image object-cover" priority />
+                {/* unoptimized: covers are pasted URLs from arbitrary hosts,
+                    which the optimizer would reject unless allowlisted. */}
+                <Image src={post.image} alt={Array.isArray(post.title) ? post.title.join('') : post.title} fill className="post-featured-image object-cover" priority unoptimized />
                 <div className="post-image-glow" />
               </div>
             )}
 
-            {/* Content body */}
+            {/* Content body — legacy posts store markdown-ish text, posts
+                written in the editor store a TipTap document. */}
             <div className="post-body">
-              {post.content.split('\n\n').flatMap((block, i) => {
+              {typeof post.content !== "string" ? (
+                <PublishedContent doc={post.content} />
+              ) : (
+              post.content.split('\n\n').flatMap((block, i) => {
                 if (block.startsWith('###')) {
                   const lines = block.split('\n');
                   const heading = lines[0].replace(/^###\s*/, '');
@@ -136,7 +143,8 @@ export default function PostPage() {
                     {block}
                   </Reveal>,
                 ];
-              })}
+              })
+              )}
             </div>
 
             <footer className="post-footer">

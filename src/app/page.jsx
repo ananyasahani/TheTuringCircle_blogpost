@@ -11,13 +11,19 @@ import DecryptedText from "@/components/reactbits/DecryptedText";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
 import { getAllPosts, getAllPostsStatic } from "@/services/posts.service";
 import { subscribeEmail } from "@/services/newsletter.service";
+import { docToPlainText } from "@/components/editor/tiptap-config";
 
 function titleOf(post) {
   return Array.isArray(post.title) ? post.title.join("") : post.title;
 }
 
 function readTime(post) {
-  const words = `${post.excerpt} ${post.content}`.split(/\s+/).length;
+  // Legacy posts hold markdown-ish text; editor posts hold a TipTap document.
+  const body =
+    typeof post.content === "string"
+      ? post.content
+      : docToPlainText(post.content);
+  const words = `${post.excerpt} ${body}`.split(/\s+/).length;
   return Math.max(3, Math.ceil(words / 90));
 }
 
@@ -244,13 +250,17 @@ function FlowStory({ post, index }) {
       transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
     >
       <Link href={`/post/${post.slug}`} className="flow-image">
-        <Image
-          src={post.image}
-          alt=""
-          fill
-          sizes="(max-width: 760px) 100vw, 58vw"
-          unoptimized
-        />
+        {/* Guarded: next/image throws on an undefined src, and a post can
+            reach the feed without a cover. */}
+        {post.image && (
+          <Image
+            src={post.image}
+            alt=""
+            fill
+            sizes="(max-width: 760px) 100vw, 58vw"
+            unoptimized
+          />
+        )}
         <span>{String(index + 1).padStart(2, "0")}</span>
       </Link>
       <div className="flow-copy">

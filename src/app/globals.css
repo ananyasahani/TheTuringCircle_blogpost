@@ -3447,3 +3447,168 @@ body {
     animation: none;
   }
 }
+
+/* ── Profile: drafts + published lists ── */
+.profile-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile-new-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  background: rgba(255, 215, 0, 0.06);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.profile-new-btn:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.14);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+.profile-new-btn:disabled { opacity: 0.5; cursor: default; }
+
+.profile-list { list-style: none; padding: 0; margin: 0; }
+.profile-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+.profile-list li:last-child { border-bottom: none; }
+.profile-list li a {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  transition: color 0.2s;
+}
+.profile-list li a:hover { color: var(--gold-bright); }
+.profile-list li button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+.profile-list li button:hover { color: var(--signal-coral, #d66e58); }
+
+/* ── Publish dialog ── */
+.tc-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(4, 5, 4, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.tc-dialog {
+  width: min(520px, 100%);
+  max-height: 90svh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  background: var(--ink-soft, #0d0f0d);
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.8);
+}
+
+.tc-dialog h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--paper);
+}
+
+.tc-dialog-deck {
+  font-size: 0.78rem;
+  color: var(--paper-muted);
+  margin-bottom: 0.9rem;
+}
+
+.tc-dialog label {
+  margin-top: 0.9rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+}
+
+.tc-dialog input,
+.tc-dialog textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border-radius: 7px;
+  border: 1px solid var(--hairline);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--paper);
+  outline: none;
+  resize: vertical;
+  font-size: 0.85rem;
+}
+.tc-dialog input:focus,
+.tc-dialog textarea:focus { border-color: rgba(212, 175, 55, 0.5); }
+
+.tc-dialog-hint {
+  font-size: 0.65rem;
+  color: rgba(238, 233, 218, 0.34);
+}
+
+.tc-dialog-error {
+  margin-top: 0.8rem;
+  font-size: 0.75rem;
+  color: var(--signal-coral, #d66e58);
+}
+
+.tc-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+.tc-dialog-actions button {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: none;
+  color: var(--paper-muted);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.tc-dialog-actions button:hover:not(:disabled) { color: var(--paper); }
+.tc-dialog-actions .tc-dialog-primary {
+  color: var(--brass);
+  border-color: rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.08);
+}
+.tc-dialog-actions .tc-dialog-primary:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.18);
+}
+.tc-dialog-actions button:disabled { opacity: 0.45; cursor: default; }

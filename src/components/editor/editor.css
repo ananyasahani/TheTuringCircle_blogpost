@@ -1,0 +1,242 @@
+/* ── Editor ──────────────────────────────────────────────────────────────
+   Uses the journal's existing tokens (--ink / --paper / --brass / --hairline)
+   so the writing surface reads as part of the same publication. */
+
+.tc-editor-shell {
+  min-height: 100svh;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Top bar */
+.tc-editor-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.5rem;
+  background: rgba(7, 8, 6, 0.82);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.tc-editor-back {
+  font-family: var(--journal-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+  transition: color 200ms ease;
+}
+.tc-editor-back:hover { color: var(--paper); }
+
+.tc-editor-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tc-editor-status {
+  font-family: var(--journal-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+}
+.tc-editor-status.is-saved { color: var(--signal-blue); }
+.tc-editor-status.is-error { color: var(--signal-coral); }
+
+.tc-editor-publish {
+  font-family: var(--journal-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brass);
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  background: rgba(212, 175, 55, 0.07);
+  cursor: pointer;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.tc-editor-publish:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.16);
+  border-color: rgba(212, 175, 55, 0.55);
+}
+.tc-editor-publish:disabled { opacity: 0.45; cursor: default; }
+
+/* Writing column */
+.tc-editor-canvas {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 8rem;
+}
+
+.tc-editor-title {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  display: block;
+  margin-bottom: 1.75rem;
+  font-family: var(--journal-sans);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--paper);
+}
+.tc-editor-title::placeholder { color: rgba(238, 233, 218, 0.16); }
+
+.tc-editor-body {
+  outline: none;
+  font-size: 1.12rem;
+  line-height: 1.8;
+  color: rgba(238, 233, 218, 0.82);
+}
+.tc-editor-body > * + * { margin-top: 1.4rem; }
+
+.tc-editor-body h2,
+.tc-editor-body h3 {
+  font-family: var(--journal-sans);
+  color: var(--paper);
+  letter-spacing: -0.015em;
+  margin-top: 2.6rem;
+}
+.tc-editor-body h2 { font-size: 1.6rem; font-weight: 800; }
+.tc-editor-body h3 { font-size: 1.25rem; font-weight: 700; }
+
+.tc-editor-body a { color: var(--brass); text-decoration: underline; }
+
+.tc-editor-body blockquote {
+  border-left: 2px solid var(--brass);
+  padding-left: 1.1rem;
+  font-family: var(--journal-serif);
+  font-size: 1.3rem;
+  font-style: italic;
+  color: var(--paper);
+}
+
+.tc-editor-body pre {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  font-family: var(--journal-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.tc-editor-body code { font-family: var(--journal-mono); font-size: 0.9em; }
+.tc-editor-body pre code { background: none; padding: 0; }
+
+.tc-editor-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+}
+
+.tc-editor-body hr {
+  border: none;
+  border-top: 1px solid var(--hairline);
+  margin: 2.5rem 0;
+}
+
+.tc-editor-body ul,
+.tc-editor-body ol { padding-left: 1.4rem; }
+.tc-editor-body li > * + * { margin-top: 0.5rem; }
+
+/* Placeholder (Placeholder extension adds .is-empty + data-placeholder) */
+.tc-editor-body p.is-editor-empty:first-child::before,
+.tc-editor-body .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: rgba(238, 233, 218, 0.22);
+}
+
+::selection { background: rgba(212, 175, 55, 0.3); color: var(--paper); }
+
+/* ── Maths ── */
+.tc-inline-math {
+  display: inline-block;
+  padding: 0 0.12em;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.tc-inline-math:hover { background: rgba(212, 175, 55, 0.12); }
+.tc-inline-math.is-editing { background: rgba(212, 175, 55, 0.1); }
+
+.tc-math-input {
+  background: none;
+  border: none;
+  outline: none;
+  font-family: var(--journal-mono);
+  font-size: 0.92rem;
+  color: var(--brass);
+  min-width: 6ch;
+}
+
+.tc-math-block {
+  margin: 2rem 0;
+  padding: 1.1rem;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.tc-math-block-preview { overflow-x: auto; cursor: pointer; }
+
+.tc-math-block-source {
+  width: 100%;
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  outline: none;
+  resize: vertical;
+  font-family: var(--journal-mono);
+  font-size: 0.85rem;
+  color: var(--paper);
+}
+
+.tc-math-block-hint {
+  margin-top: 0.6rem;
+  font-family: var(--journal-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(238, 233, 218, 0.3);
+}
+
+/* ── Embeds ── */
+.tc-embed { margin: 2rem 0; }
+.tc-embed iframe {
+  width: 100%;
+  min-height: 380px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: #000;
+}
+.tc-embed-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.15rem;
+  border: 1px dashed var(--hairline);
+  border-radius: 10px;
+}
+.tc-embed-fallback a { color: var(--brass); word-break: break-all; }
+.tc-embed-fallback span {
+  font-family: var(--journal-mono);
+  font-size: 0.58rem;
+  color: var(--paper-muted);
+}

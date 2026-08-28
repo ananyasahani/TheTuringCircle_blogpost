@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   getAllPosts,
   getAllPostsStatic,
   seedPublishedFromStatic,
 } from "@/services/posts.service";
+import {
+  createDraft,
+  deleteDraft,
+  listMyDrafts,
+  listMyPublished,
+} from "@/services/drafts.service";
 import { useAuth } from "@/components/providers/AuthProvider";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
@@ -23,10 +31,14 @@ const fadeUp = {
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
   const [posts, setPosts] = useState(() => getAllPostsStatic());
   const [fromDb, setFromDb] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [seedMsg, setSeedMsg] = useState("");
+  const [drafts, setDrafts] = useState([]);
+  const [mine, setMine] = useState([]);
+  const [creating, setCreating] = useState(false);
 
   const loadPosts = () => {
     getAllPosts().then((data) => {
@@ -41,6 +53,31 @@ export default function ProfilePage() {
   useEffect(() => {
     loadPosts();
   }, []);
+
+  const loadMine = useCallback(() => {
+    if (!user) return;
+    listMyDrafts(user.uid).then(setDrafts).catch(() => setDrafts([]));
+    listMyPublished(user.uid).then(setMine).catch(() => setMine([]));
+  }, [user]);
+
+  useEffect(() => {
+    loadMine();
+  }, [loadMine]);
+
+  const startDraft = async () => {
+    if (!user) return;
+    setCreating(true);
+    try {
+      router.push(`/editor/${await createDraft(user)}`);
+    } catch {
+      setCreating(false);
+    }
+  };
+
+  const removeDraft = async (id) => {
+    await deleteDraft(id);
+    loadMine();
+  };
 
   const handleSeed = async () => {
     if (!user) return;
@@ -165,6 +202,60 @@ export default function ProfilePage() {
               </motion.div>
             )}
 
+            {/* Drafts */}
+            {user && (
+              <motion.section
+                className="glass-panel profile-section"
+                initial="hidden"
+                animate="visible"
+                variants={fadeUp}
+                custom={0.18}
+              >
+                <div className="profile-section-head">
+                  <h2 className="profile-section-title">
+                    <span className="material-symbols-outlined" style={{ fontSize: "1rem", color: "var(--gold-bright)" }}>edit_note</span>
+                    Drafts
+                  </h2>
+                  <button
+                    type="button"
+                    className="profile-new-btn"
+                    onClick={startDraft}
+                    disabled={creating}
+                  >
+                    {creating ? "Opening…" : "New post"}
+                  </button>
+                </div>
+                <p className="profile-section-desc">
+                  Unpublished writing. Only you can see these.
+                </p>
+                {drafts.length === 0 ? (
+                  <div className="profile-empty">
+                    <span className="material-symbols-outlined" style={{ fontSize: "2.5rem", color: "var(--text-muted)" }}>
+                      draft
+                    </span>
+                    <span className="profile-empty-text">No drafts yet</span>
+                  </div>
+                ) : (
+                  <ul className="profile-list">
+                    {drafts.map((draft) => (
+                      <li key={draft.id}>
+                        <Link href={`/editor/${draft.id}`}>
+                          {draft.title?.trim() || "Untitled draft"}
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => removeDraft(draft.id)}
+                          aria-label="Delete draft"
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </motion.section>
+            )}
+
             {/* Reading list placeholder */}
             <motion.section
               className="glass-panel profile-section"
@@ -201,14 +292,28 @@ export default function ProfilePage() {
                 Activity
               </h2>
               <p className="profile-section-desc">
-                Your comments and interactions across the circle.
+                Papers you have published to the journal.
               </p>
-              <div className="profile-empty">
-                <span className="material-symbols-outlined" style={{ fontSize: "2.5rem", color: "var(--text-muted)" }}>
-                  forum
-                </span>
-                <span className="profile-empty-text">No activity yet</span>
-              </div>
+              {mine.length === 0 ? (
+                <div className="profile-empty">
+                  <span className="material-symbols-outlined" style={{ fontSize: "2.5rem", color: "var(--text-muted)" }}>
+                    forum
+                  </span>
+                  <span className="profile-empty-text">Nothing published yet</span>
+                </div>
+              ) : (
+                <ul className="profile-list">
+                  {mine.map((post) => (
+                    <li key={post.id}>
+                      <Link href={`/post/${post.slug || post.id}`}>
+                        {Array.isArray(post.title)
+                          ? post.title.join("")
+                          : post.title || "Untitled"}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </motion.section>
           </div>
         </main>
