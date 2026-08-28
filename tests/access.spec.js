@@ -34,6 +34,20 @@ test("comments invite a signed-out reader to sign in, and expose no composer", a
   await expect(comments.locator("textarea")).toHaveCount(0);
 });
 
+test("no destructive controls are exposed to a signed-out visitor", async ({
+  page,
+}) => {
+  await page.goto("/post/why-the-turing-circle-exists");
+
+  // Deleting a post is restricted to its author and to moderators; the
+  // control must never render for an anonymous reader.
+  await expect(page.locator(".post-delete")).toHaveCount(0);
+  // Nor a delete affordance on any existing comment.
+  await expect(
+    page.locator(".comment-meta button", { hasText: /delete/i }),
+  ).toHaveCount(0);
+});
+
 test("the navbar shows Sign in rather than a profile avatar", async ({
   page,
 }) => {
