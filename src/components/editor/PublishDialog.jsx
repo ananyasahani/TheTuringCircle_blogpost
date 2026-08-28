@@ -1,8 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { docFirstParagraph } from "./tiptap-config";
 import { publishDraft } from "@/services/drafts.service";
+
+/**
+ * Unsplash (and most photo sites) show an HTML *page* at the URL in the
+ * address bar; the image itself lives on a different host. Pasting the page
+ * URL is the single most common cover-image mistake, so it gets its own
+ * message rather than a generic "couldn't load".
+ */
+function coverUrlProblem(url) {
+  if (!url) return "";
+  if (/^https?:\/\/(www\.)?unsplash\.com\/photos\//i.test(url)) {
+    return "That's an Unsplash page, not the image. Right-click the photo → Copy image address (it should start with images.unsplash.com).";
+  }
+  if (/^https?:\/\/(www\.)?pexels\.com\//i.test(url)) {
+    return "That's a Pexels page, not the image. Right-click the photo → Copy image address.";
+  }
+  if (/^http:\/\//i.test(url)) {
+    return "Use an https:// link — browsers block insecure images on a secure page.";
+  }
+  return "";
+}
 
 /**
  * Collects the fields the reading pages need — excerpt, tags, cover — which
@@ -19,8 +39,43 @@ export default function PublishDialog({ draft, content, title, onClose, onPublis
   const [image, setImage] = useState(draft.image || "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // Result of the last probe, tagged with the URL it was for. Keeping the URL
+  // in state lets the status below be derived rather than set, which avoids
+  // a synchronous setState inside the effect.
+  const [probe, setProbe] = useState({ url: "", status: "idle" });
 
-  const canPublish = title.trim() && excerpt.trim() && image.trim() && !busy;
+  const url = image.trim();
+  const hint = coverUrlProblem(url);
+
+  // Probe by actually loading the URL — the only reliable way to tell whether
+  // a link is an image. Debounced so we don't fetch on every keystroke.
+  useEffect(() => {
+    if (!url || coverUrlProblem(url)) return undefined;
+    let alive = true;
+    const timer = window.setTimeout(() => {
+      const probeImage = new window.Image();
+      probeImage.onload = () => alive && setProbe({ url, status: "ok" });
+      probeImage.onerror = () => alive && setProbe({ url, status: "bad" });
+      probeImage.referrerPolicy = "no-referrer";
+      probeImage.src = url;
+    }, 400);
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+    };
+  }, [url]);
+
+  // "idle" | "checking" | "ok" | "bad"
+  const cover = !url
+    ? "idle"
+    : hint
+      ? "bad"
+      : probe.url === url
+        ? probe.status
+        : "checking";
+
+  const canPublish =
+    title.trim() && excerpt.trim() && cover === "ok" && !busy;
 
   const submit = async (event) => {
     event.preventDefault();
@@ -79,17 +134,38 @@ export default function PublishDialog({ draft, content, title, onClose, onPublis
         </span>
 
         <label htmlFor="pub-image">Cover image URL</label>
+        {/* Deliberately type=text, not type=url: the browser's url validation
+            rejects a relative path like /editorial/spiral.jpg, which is a
+            perfectly good cover. The probe below is the real check. */}
         <input
           id="pub-image"
-          type="url"
+          type="text"
           value={image}
           onChange={(event) => setImage(event.target.value)}
           placeholder="https://… or /editorial/spiral.jpg"
           required
         />
         <span className="tc-dialog-hint">
-          Required — the homepage cards are built around a cover image.
+          Required — a direct link to an image file, or a local path like
+          /editorial/spiral.jpg
         </span>
+
+        {hint && <p className="tc-dialog-error">{hint}</p>}
+
+        {!hint && url && (
+          <div className={`tc-cover-preview is-${cover}`}>
+            {cover === "ok" ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={url} alt="" referrerPolicy="no-referrer" />
+            ) : (
+              <span>
+                {cover === "checking"
+                  ? "Checking image…"
+                  : "That URL didn't load as an image."}
+              </span>
+            )}
+          </div>
+        )}
 
         {error && <p className="tc-dialog-error">{error}</p>}
 
