@@ -151,6 +151,46 @@ function toMillis(value: unknown): number {
   return 0;
 }
 
+/**
+ * Load a live post for editing. Published docs are keyed by slug, so the slug
+ * doubles as the editor's id — draft ids are Firestore auto-ids, which can't
+ * collide with a slug in practice.
+ */
+export async function getPublishedForEdit(slug: string) {
+  const snap = await getDoc(doc(db, PUBLISHED, slug));
+  if (!snap.exists()) return null;
+  const data = snap.data() as Record<string, unknown>;
+  return {
+    id: snap.id,
+    slug: snap.id,
+    authorId: data.authorId as string,
+    authorName: (data.author as { name?: string })?.name ?? "",
+    authorAvatar: (data.author as { avatar?: string })?.avatar ?? null,
+    authorInitials: (data.author as { initials?: string })?.initials ?? "?",
+    title: Array.isArray(data.title)
+      ? (data.title as string[]).join("")
+      : ((data.title as string) ?? ""),
+    content: data.content as Record<string, unknown> | string,
+    excerpt: (data.excerpt as string) ?? "",
+    image: (data.image as string) ?? "",
+    tags: (data.tags as Draft["tags"]) ?? [],
+  };
+}
+
+/**
+ * Patch a live post in place. The slug — and therefore the URL — never
+ * changes, so existing links keep working.
+ */
+export async function updatePublished(
+  slug: string,
+  patch: Record<string, unknown>,
+): Promise<void> {
+  await updateDoc(doc(db, PUBLISHED, slug), {
+    ...patch,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export interface PublishMeta {
   excerpt: string;
   image: string;
@@ -191,5 +231,22 @@ export async function publishDraft(
   });
 
   await deleteDraft(draft.id);
+  return slug;
+}
+
+/** Save edits to an already-published post, keeping its slug and createdAt. */
+export async function updatePublishedPost(
+  slug: string,
+  title: string,
+  content: Draft["content"],
+  meta: PublishMeta,
+): Promise<string> {
+  await updatePublished(slug, {
+    title: title.trim() || "Untitled",
+    content,
+    excerpt: meta.excerpt,
+    image: meta.image,
+    tags: meta.tags,
+  });
   return slug;
 }

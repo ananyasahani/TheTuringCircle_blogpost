@@ -360,3 +360,80 @@
   /* The left gutter doesn't exist on narrow screens — sit the row inline. */
   .tc-insert { flex-wrap: wrap; max-width: 70vw; }
 }
+
+/* ── Published reading view ──
+   Overrides the editor's own typography so a post written in the editor is
+   indistinguishable from the legacy markdown-ish essays. Values mirror the
+   effective .post-body / .post-h3 / .post-paragraph rules in globals.css
+   (the journal-redesign versions, which override the originals). */
+.tc-editor-body.tc-published-body {
+  font-family: var(--journal-sans);
+  font-size: 1.06rem;
+  line-height: 1.8;
+  color: #c7c4b9;
+}
+
+/* Neutralise the editor's flow spacing; published prose uses margin-bottom. */
+.tc-published-body > * + * { margin-top: 0; }
+.tc-published-body > * { margin-bottom: 2rem; }
+
+.tc-published-body h2,
+.tc-published-body h3 {
+  font-family: var(--journal-serif);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: #fff;
+  margin: 3.5rem 0 1.5rem;
+}
+.tc-published-body h2 { font-size: 2.4rem; }
+.tc-published-body h3 { font-size: 1.9rem; }
+
+/* Brass drop cap on the opening paragraph, as on the legacy posts. */
+.tc-published-body > p:first-child::first-letter {
+  float: left;
+  color: var(--brass);
+  font-family: var(--journal-serif);
+  font-size: 5.2rem;
+  line-height: 0.76;
+  padding: 0.3rem 0.5rem 0 0;
+}
+
+/* Scroll reveal, matching the legacy framer-motion Reveal. Only active once
+   PublishedContent adds .is-reveal-ready, so no-JS never hides the prose. */
+.tc-published-body.is-reveal-ready > * {
+  opacity: 0;
+  transform: translate(var(--reveal-x, -44px), 26px);
+  filter: blur(6px);
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tc-published-body.is-reveal-ready > *.is-revealed {
+  opacity: 1;
+  transform: translate(0, 0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-published-body.is-reveal-ready > * {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
+
+/* Editor-only chrome must not leak into the published view. */
+.tc-editor-notice {
+  margin-bottom: 1.5rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  background: rgba(212, 175, 55, 0.06);
+  font-family: var(--journal-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brass);
+}

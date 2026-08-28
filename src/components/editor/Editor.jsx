@@ -5,17 +5,26 @@ import Link from "next/link";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { buildExtensions } from "./tiptap-config";
 import TitleField from "./TitleField";
-import { updateDraft } from "@/services/drafts.service";
 import "katex/dist/katex.min.css";
 import "./editor.css";
 
 const AUTOSAVE_MS = 800;
 
 /**
- * The writing surface: title, body, autosave, and the top bar. Menus are
- * mounted by the caller-facing children so this file stays about persistence.
+ * The writing surface: title, body, autosave, and the top bar.
+ *
+ * `save` is injected rather than hardcoded so the same editor drives both an
+ * unpublished draft and a live post — the caller decides which collection the
+ * patch lands in.
  */
-export default function Editor({ draft, onPublish, children }) {
+export default function Editor({
+  draft,
+  save: persist,
+  onPublish,
+  publishLabel = "Publish",
+  notice,
+  children,
+}) {
   const [title, setTitle] = useState(draft.title || "");
   const [status, setStatus] = useState("saved");
 
@@ -42,13 +51,13 @@ export default function Editor({ draft, onPublish, children }) {
     async (patch) => {
       setStatus("saving");
       try {
-        await updateDraft(draft.id, patch);
+        await persist(patch);
         setStatus("saved");
       } catch {
         setStatus("error");
       }
     },
-    [draft.id],
+    [persist],
   );
 
   const queueSave = useCallback(
@@ -110,12 +119,13 @@ export default function Editor({ draft, onPublish, children }) {
             onClick={() => onPublish({ title, content: editor?.getJSON() })}
             disabled={!editor}
           >
-            Publish
+            {publishLabel}
           </button>
         </div>
       </header>
 
       <main className="tc-editor-canvas">
+        {notice && <p className="tc-editor-notice">{notice}</p>}
         <TitleField
           value={title}
           onChange={handleTitle}

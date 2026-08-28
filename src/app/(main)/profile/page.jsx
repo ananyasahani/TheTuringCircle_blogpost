@@ -305,10 +305,17 @@ export default function ProfilePage() {
                 <ul className="profile-list">
                   {mine.map((post) => (
                     <li key={post.id}>
-                      <Link href={`/post/${post.slug || post.id}`}>
+                      {/* Title opens the editor, mirroring the Drafts box. */}
+                      <Link href={`/editor/${post.slug || post.id}`}>
                         {Array.isArray(post.title)
                           ? post.title.join("")
                           : post.title || "Untitled"}
+                      </Link>
+                      <Link
+                        className="profile-list-view"
+                        href={`/post/${post.slug || post.id}`}
+                      >
+                        View
                       </Link>
                     </li>
                   ))}

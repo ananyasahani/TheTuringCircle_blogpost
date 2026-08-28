@@ -3644,3 +3644,14 @@ body {
   border-style: dashed;
 }
 .tc-cover-preview.is-bad span { color: var(--signal-coral, #d66e58); }
+
+.profile-list-view {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted) !important;
+  flex-shrink: 0;
+}
+.profile-list-view:hover { color: var(--gold-bright) !important; }

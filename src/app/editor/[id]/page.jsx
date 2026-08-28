@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { getDraft } from "@/services/drafts.service";
+import {
+  getDraft,
+  getPublishedForEdit,
+  updateDraft,
+  updatePublished,
+} from "@/services/drafts.service";
 import Editor from "@/components/editor/Editor";
 import PublishDialog from "@/components/editor/PublishDialog";
 import HighlightMenu from "@/components/editor/HighlightMenu";
@@ -16,26 +21,48 @@ export default function EditorPage() {
   const router = useRouter();
   const id = params.id;
 
-  const [draft, setDraft] = useState(null);
+  // { kind: "draft" | "published", data }
+  const [record, setRecord] = useState(null);
   const [state, setState] = useState("loading");
   const [publishing, setPublishing] = useState(null);
 
   useEffect(() => {
-    if (!user || !id) return;
+    if (!user || !id) return undefined;
     let alive = true;
-    getDraft(id)
-      .then((found) => {
+
+    (async () => {
+      try {
+        // Drafts first; a published post is addressed by its slug, which
+        // can't collide with a Firestore auto-id.
+        const draft = await getDraft(id);
+        const found = draft
+          ? { kind: "draft", data: draft }
+          : await getPublishedForEdit(id).then((post) =>
+              post ? { kind: "published", data: post } : null,
+            );
+
         if (!alive) return;
         if (!found) return setState("missing");
-        if (found.authorId !== user.uid) return setState("forbidden");
-        setDraft(found);
+        if (found.data.authorId !== user.uid) return setState("forbidden");
+        setRecord(found);
         setState("ready");
-      })
-      .catch(() => alive && setState("missing"));
+      } catch {
+        if (alive) setState("missing");
+      }
+    })();
+
     return () => {
       alive = false;
     };
   }, [user, id]);
+
+  const isPublished = record?.kind === "published";
+
+  const save = useCallback(
+    (patch) =>
+      isPublished ? updatePublished(id, patch) : updateDraft(id, patch),
+    [isPublished, id],
+  );
 
   if (loading || !user) return null;
 
@@ -44,18 +71,18 @@ export default function EditorPage() {
       <div className="tc-editor-shell">
         <main className="tc-editor-canvas">
           <h1 className="subpage-title">
-            {state === "forbidden" ? "Not your draft" : "Draft not found"}
+            {state === "forbidden" ? "Not yours to edit" : "Nothing to edit"}
           </h1>
           <p className="subpage-subtitle">
             {state === "loading"
               ? "Opening…"
               : state === "forbidden"
-                ? "This draft belongs to another member."
-                : "It may have been published or deleted."}
+                ? "This piece belongs to another member."
+                : "It may have been deleted."}
           </p>
           <p style={{ marginTop: "2rem" }}>
             <Link href="/profile" className="back-link">
-              ← Back to your drafts
+              ← Back to your profile
             </Link>
           </p>
         </main>
@@ -66,7 +93,14 @@ export default function EditorPage() {
   return (
     <>
       <Editor
-        draft={draft}
+        draft={record.data}
+        save={save}
+        publishLabel={isPublished ? "Update details" : "Publish"}
+        notice={
+          isPublished
+            ? "You are editing a published post — changes save straight to the live journal."
+            : null
+        }
         onPublish={({ title, content }) => setPublishing({ title, content })}
       >
         {(editor) => (
@@ -76,11 +110,13 @@ export default function EditorPage() {
           </>
         )}
       </Editor>
+
       {publishing && (
         <PublishDialog
-          draft={draft}
+          draft={record.data}
           title={publishing.title}
           content={publishing.content}
+          mode={isPublished ? "update" : "publish"}
           onClose={() => setPublishing(null)}
           onPublished={(slug) => router.push(`/post/${slug}`)}
         />

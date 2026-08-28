@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { docFirstParagraph } from "./tiptap-config";
-import { publishDraft } from "@/services/drafts.service";
+import { publishDraft, updatePublishedPost } from "@/services/drafts.service";
 
 /**
  * Unsplash (and most photo sites) show an HTML *page* at the URL in the
@@ -29,7 +29,16 @@ function coverUrlProblem(url) {
  * deliberately live here rather than in a sidebar, so the writing surface
  * stays clean. Excerpt is pre-filled from the first paragraph.
  */
-export default function PublishDialog({ draft, content, title, onClose, onPublished }) {
+export default function PublishDialog({
+  draft,
+  content,
+  title,
+  onClose,
+  onPublished,
+  /** "publish" for a draft going live, "update" for an existing post. */
+  mode = "publish",
+}) {
+  const isUpdate = mode === "update";
   const [excerpt, setExcerpt] = useState(
     draft.excerpt || docFirstParagraph(content).slice(0, 280),
   );
@@ -92,10 +101,15 @@ export default function PublishDialog({ draft, content, title, onClose, onPublis
           style: index === 0 ? "gold" : "muted",
         }));
 
-      const slug = await publishDraft(
-        { ...draft, title, content },
-        { excerpt: excerpt.trim(), image: image.trim(), tags: parsedTags },
-      );
+      const meta = {
+        excerpt: excerpt.trim(),
+        image: image.trim(),
+        tags: parsedTags,
+      };
+      const slug = isUpdate
+        ? // Keeps the existing slug, so published links never break.
+          await updatePublishedPost(draft.slug, title, content, meta)
+        : await publishDraft({ ...draft, title, content }, meta);
       onPublished(slug);
     } catch (err) {
       setError(err?.message || "Could not publish. Please try again.");
@@ -106,9 +120,11 @@ export default function PublishDialog({ draft, content, title, onClose, onPublis
   return (
     <div className="tc-dialog-backdrop" role="dialog" aria-modal="true">
       <form className="tc-dialog" onSubmit={submit}>
-        <h2>Publish to the journal</h2>
+        <h2>{isUpdate ? "Update this post" : "Publish to the journal"}</h2>
         <p className="tc-dialog-deck">
-          These appear on the library and archive pages.
+          {isUpdate
+            ? "Changes go live immediately. The post keeps its current link."
+            : "These appear on the library and archive pages."}
         </p>
 
         <label htmlFor="pub-excerpt">Excerpt</label>
@@ -178,7 +194,13 @@ export default function PublishDialog({ draft, content, title, onClose, onPublis
             className="tc-dialog-primary"
             disabled={!canPublish}
           >
-            {busy ? "Publishing…" : "Publish"}
+            {busy
+              ? isUpdate
+                ? "Saving…"
+                : "Publishing…"
+              : isUpdate
+                ? "Save changes"
+                : "Publish"}
           </button>
         </div>
       </form>
