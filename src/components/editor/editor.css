@@ -398,9 +398,11 @@
   padding: 0.3rem 0.5rem 0 0;
 }
 
-/* Scroll reveal, matching the legacy framer-motion Reveal. Only active once
-   PublishedContent adds .is-reveal-ready, so no-JS never hides the prose. */
-.tc-published-body.is-reveal-ready > * {
+/* Scroll reveal, matching the legacy framer-motion Reveal.
+   Applied per block by PublishedContent, never to the container: a block that
+   was never armed simply stays visible. Hiding the container instead meant a
+   timing miss blanked the whole article. */
+.tc-published-body > .tc-reveal {
   opacity: 0;
   transform: translate(var(--reveal-x, -44px), 26px);
   filter: blur(6px);
@@ -409,14 +411,14 @@
     transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
     filter 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.tc-published-body.is-reveal-ready > *.is-revealed {
+.tc-published-body > .tc-reveal.is-revealed {
   opacity: 1;
   transform: translate(0, 0);
   filter: blur(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tc-published-body.is-reveal-ready > * {
+  .tc-published-body > .tc-reveal {
     opacity: 1;
     transform: none;
     filter: none;

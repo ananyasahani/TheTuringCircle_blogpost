@@ -35,15 +35,6 @@ export default function PublishedContent({ doc }) {
       return undefined;
     }
 
-    // Opt in from JS: the hidden state is scoped to this class, so if the
-    // script never runs the prose is simply visible rather than blank.
-    root.classList.add("is-reveal-ready");
-
-    const blocks = Array.from(root.children);
-    blocks.forEach((block, index) => {
-      block.style.setProperty("--reveal-x", index % 2 === 0 ? "-44px" : "44px");
-    });
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -53,11 +44,40 @@ export default function PublishedContent({ doc }) {
           }
         });
       },
-      { threshold: 0.35 },
+      // Deliberately low: a block taller than the viewport can never reach a
+      // high ratio, and would otherwise stay hidden forever.
+      { threshold: 0.08 },
     );
 
-    blocks.forEach((block) => observer.observe(block));
-    return () => observer.disconnect();
+    /**
+     * Hide-then-reveal is applied per block, never to the container. A block
+     * we never got to therefore stays visible — the failure mode is "no
+     * animation", not "no article".
+     */
+    let index = 0;
+    const arm = () => {
+      Array.from(root.children).forEach((block) => {
+        if (block.classList.contains("tc-reveal")) return;
+        block.style.setProperty(
+          "--reveal-x",
+          index % 2 === 0 ? "-44px" : "44px",
+        );
+        index += 1;
+        block.classList.add("tc-reveal");
+        observer.observe(block);
+      });
+    };
+
+    // ProseMirror fills the DOM after mount (immediatelyRender:false), so the
+    // children may not exist yet on this pass; watch for them arriving.
+    arm();
+    const mutations = new MutationObserver(arm);
+    mutations.observe(root, { childList: true });
+
+    return () => {
+      observer.disconnect();
+      mutations.disconnect();
+    };
   }, [editor, doc]);
 
   if (!editor) return null;
