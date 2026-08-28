@@ -4,7 +4,7 @@ import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 const projectId =
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "ttcblog-c4bfd";
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "the-turing-circle";
 
 const firebaseConfig = {
     // The emulator suite ignores real credentials but the SDK still requires a
