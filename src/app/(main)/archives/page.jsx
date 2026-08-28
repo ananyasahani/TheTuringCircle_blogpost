@@ -4,19 +4,35 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { getAllPosts, getAllPostsStatic } from "@/services/posts.service";
+import { monthLabel, postDate, relativeTime } from "@/lib/postDate";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 
-// Group posts by a rough "time bucket" from their meta string
-function groupByTime(posts) {
-  const groups = { "Hours ago": [], "Days ago": [], "Weeks ago": [] };
-  posts.forEach((p) => {
-    const meta = p.author.meta.toLowerCase();
-    if (meta.includes("h ago")) groups["Hours ago"].push(p);
-    else if (meta.includes("d ago")) groups["Days ago"].push(p);
-    else groups["Weeks ago"].push(p);
+/**
+ * File posts under the month they were published, newest first. Previously
+ * this bucketed on substrings of the author.meta string, which meant every
+ * editor-written post ("… · Just now") landed under "Weeks ago" forever.
+ */
+function groupByMonth(posts) {
+  const groups = new Map();
+
+  posts.forEach((post) => {
+    const date = postDate(post);
+    const label = monthLabel(date);
+    if (!groups.has(label)) groups.set(label, { label, date, items: [] });
+    const group = groups.get(label);
+    group.items.push(post);
+    if (date && (!group.date || date > group.date)) group.date = date;
   });
-  return Object.entries(groups).filter(([, items]) => items.length > 0);
+
+  return Array.from(groups.values())
+    .sort((a, b) => (b.date?.getTime() ?? 0) - (a.date?.getTime() ?? 0))
+    .map((group) => ({
+      ...group,
+      items: group.items.sort(
+        (a, b) => (postDate(b)?.getTime() ?? 0) - (postDate(a)?.getTime() ?? 0),
+      ),
+    }));
 }
 
 const fadeIn = {
@@ -41,7 +57,7 @@ export default function ArchivesPage() {
     };
   }, []);
 
-  const grouped = useMemo(() => groupByTime(posts), [posts]);
+  const grouped = useMemo(() => groupByMonth(posts), [posts]);
 
   return (
     <SmoothScroll>
@@ -63,7 +79,7 @@ export default function ArchivesPage() {
             </motion.div>
 
             <div className="archive-timeline">
-              {grouped.map(([label, items]) => (
+              {grouped.map(({ label, items }) => (
                 <section key={label} className="archive-group">
                   <div className="archive-group-label">
                     <span className="archive-dot" />
@@ -84,7 +100,7 @@ export default function ArchivesPage() {
                           <div className="archive-item-left">
                             <span className="archive-item-variant">{post.variant}</span>
                             <span className="archive-item-time">
-                              {post.author.meta.split("·")[1]?.trim() || ""}
+                              {relativeTime(postDate(post))}
                             </span>
                           </div>
                           <div className="archive-item-right">

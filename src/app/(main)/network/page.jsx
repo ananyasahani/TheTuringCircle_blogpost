@@ -4,29 +4,47 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { getAllPosts, getAllPostsStatic } from "@/services/posts.service";
+import { authorField, postDate } from "@/lib/postDate";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 
-// Derive unique authors with their post counts and fields
+/**
+ * Unique contributors with their post counts and field.
+ *
+ * The field comes from each author's most recent post's headline tag rather
+ * than from splitting the author.meta display string, so a contributor whose
+ * posts were written in the editor is described by what they actually wrote
+ * about. Latest post first, so their newest subject wins.
+ */
 function deriveAuthors(posts) {
+  const byRecency = [...posts].sort(
+    (a, b) => (postDate(b)?.getTime() ?? 0) - (postDate(a)?.getTime() ?? 0),
+  );
+
   const map = new Map();
-  posts.forEach((p) => {
-    const key = p.author.name;
+  byRecency.forEach((post) => {
+    const key = post.author.name;
     if (!map.has(key)) {
       map.set(key, {
-        name: p.author.name,
-        avatar: p.author.avatar,
-        initials: p.author.initials || p.author.name.charAt(0),
-        field: p.author.meta.split("·")[0]?.trim() || "Research",
+        name: post.author.name,
+        avatar: post.author.avatar,
+        initials: post.author.initials || post.author.name.charAt(0),
+        field: authorField(post),
+        latest: postDate(post),
         postCount: 0,
         slugs: [],
       });
     }
     const entry = map.get(key);
-    entry.postCount++;
-    entry.slugs.push(p.slug);
+    entry.postCount += 1;
+    entry.slugs.push(post.slug);
   });
-  return Array.from(map.values()).sort((a, b) => b.postCount - a.postCount);
+
+  return Array.from(map.values()).sort(
+    (a, b) =>
+      b.postCount - a.postCount ||
+      (b.latest?.getTime() ?? 0) - (a.latest?.getTime() ?? 0),
+  );
 }
 
 const cardAnim = {

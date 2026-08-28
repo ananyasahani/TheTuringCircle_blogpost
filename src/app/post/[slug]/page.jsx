@@ -8,6 +8,7 @@ import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
 import PublishedContent from "@/components/editor/PublishedContent";
+import { authorField, postDate, relativeTime } from "@/lib/postDate";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -70,7 +71,7 @@ export default function PostPage() {
                 <span className="post-category">
                   {post.tags?.[0]?.label || "Article"}
                 </span>
-                <span className="post-date">{post.author.meta}</span>
+                <span className="post-date">{relativeTime(postDate(post))}</span>
               </div>
               
               <h1 className="post-title">
@@ -94,7 +95,7 @@ export default function PostPage() {
                 )}
                 <div>
                   <div className="author-name">{post.author.name}</div>
-                  <div className="author-role">{post.author.meta.split('·')[0]}</div>
+                  <div className="author-role">{authorField(post)}</div>
                 </div>
               </div>
             </header>
