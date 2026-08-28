@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FloatingMenu } from "@tiptap/react/menus";
 
 const Icon = ({ name }) => (
@@ -18,6 +18,16 @@ const Icon = ({ name }) => (
  */
 export default function InsertMenu({ editor }) {
   const [open, setOpen] = useState(false);
+
+  // The expanded row sits across the empty line it was opened on, which is
+  // exactly where the placeholder renders. Flag the document while the row is
+  // open so the placeholder can step out of the way.
+  useEffect(() => {
+    const dom = editor?.view?.dom;
+    if (!dom) return undefined;
+    dom.classList.toggle("is-inserting", open);
+    return () => dom.classList.remove("is-inserting");
+  }, [editor, open]);
 
   if (!editor) return null;
 

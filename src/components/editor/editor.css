@@ -161,6 +161,14 @@
   height: 0;
   pointer-events: none;
   color: rgba(238, 233, 218, 0.22);
+  transition: opacity 140ms ease;
+}
+
+/* …but get out of the way of the expanded insert row, which occupies the
+   same line. Toggled from InsertMenu. */
+.tc-editor-body.is-inserting p.is-editor-empty:first-child::before,
+.tc-editor-body.is-inserting .is-empty::before {
+  opacity: 0;
 }
 
 ::selection { background: rgba(212, 175, 55, 0.3); color: var(--paper); }
