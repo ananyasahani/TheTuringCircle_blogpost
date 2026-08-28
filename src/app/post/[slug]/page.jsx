@@ -9,6 +9,7 @@ import SmoothScroll from "@/components/providers/SmoothScroll";
 import LiquidSpiral from "@/components/visuals/LiquidSpiral";
 import PublishedContent from "@/components/editor/PublishedContent";
 import { authorField, postDate, relativeTime } from "@/lib/postDate";
+import CommentThread from "@/components/post/CommentThread";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -165,6 +166,8 @@ export default function PostPage() {
               </div>
             </footer>
           </motion.article>
+
+          <CommentThread slug={post.slug} />
         </main>
       </div>
     </SmoothScroll>

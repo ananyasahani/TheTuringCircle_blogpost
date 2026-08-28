@@ -111,7 +111,7 @@ export default function ArchivesPage() {
                               {post.author.name}
                               {post.stats && (
                                 <span className="archive-item-stats">
-                                  {" "}— {post.stats.views} views · {post.stats.comments} comments
+                                  {" "}— {post.stats.views} views
                                 </span>
                               )}
                             </p>
