@@ -11,9 +11,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Once authenticated, leave the login screen.
+  // Once authenticated, leave the login screen — back to ?next= if it's a
+  // safe in-app path (leading slash, no protocol), otherwise the profile.
   useEffect(() => {
-    if (!loading && user) router.replace("/profile");
+    if (!loading && user) {
+      const next = new URLSearchParams(window.location.search).get("next");
+      const dest = next && /^\/(?!\/)/.test(next) ? next : "/profile";
+      router.replace(dest);
+    }
   }, [user, loading, router]);
 
   const handleSignIn = async () => {
