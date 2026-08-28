@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { UserProfile } from "./auth.service";
+import { deleteThread } from "./comments.service";
 
 const DRAFTS = "drafts";
 const PUBLISHED = "published";
@@ -232,6 +233,16 @@ export async function publishDraft(
 
   await deleteDraft(draft.id);
   return slug;
+}
+
+/**
+ * Take a post down. Its comment thread is removed first — Firestore does not
+ * cascade, so deleting only the post document would strand the thread.
+ * Permitted for the post's author and for moderators.
+ */
+export async function deletePublishedPost(slug: string): Promise<void> {
+  await deleteThread(slug);
+  await deleteDoc(doc(db, PUBLISHED, slug));
 }
 
 /** Save edits to an already-published post, keeping its slug and createdAt. */

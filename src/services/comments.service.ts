@@ -84,3 +84,13 @@ export async function deleteComment(
 ): Promise<void> {
   await deleteDoc(doc(db, PUBLISHED, slug, COMMENTS, commentId));
 }
+
+/**
+ * Delete every comment on a post. Firestore does not cascade deletes, so a
+ * post removed on its own would leave its thread orphaned under a path
+ * nothing reads. Called before deleting the post itself.
+ */
+export async function deleteThread(slug: string): Promise<void> {
+  const snap = await getDocs(threadRef(slug));
+  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+}

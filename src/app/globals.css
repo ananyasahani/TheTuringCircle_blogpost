@@ -3812,3 +3812,38 @@ body {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* Destructive action on a post — deliberately quiet until hovered. */
+.post-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.post-delete {
+  background: none;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.post-delete:hover:not(:disabled) {
+  color: var(--signal-coral);
+  border-color: rgba(214, 110, 88, 0.5);
+  background: rgba(214, 110, 88, 0.08);
+}
+.post-delete:disabled { opacity: 0.5; cursor: default; }
+
+/* Shown to readers where an authoring control would otherwise be. */
+.profile-role-note {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}

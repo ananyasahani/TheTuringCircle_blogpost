@@ -16,6 +16,7 @@ import {
   listMyPublished,
 } from "@/services/drafts.service";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { canWrite, roleLabel } from "@/services/auth.service";
 import Navbar from "@/components/layout/Navbar";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 
@@ -56,7 +57,10 @@ export default function ProfilePage() {
 
   const loadMine = useCallback(() => {
     if (!user) return;
-    listMyDrafts(user.uid).then(setDrafts).catch(() => setDrafts([]));
+    // Readers have no drafts and the rules would reject the query anyway.
+    if (canWrite(user)) {
+      listMyDrafts(user.uid).then(setDrafts).catch(() => setDrafts([]));
+    }
     listMyPublished(user.uid).then(setMine).catch(() => setMine([]));
   }, [user]);
 
@@ -138,7 +142,7 @@ export default function ProfilePage() {
                 </h1>
                 <p className="subpage-subtitle" style={{ marginBottom: 0 }}>
                   {user
-                    ? `${user.role === "moderator" ? "Moderator" : "Member"} · ${user.email ?? ""}`
+                    ? `${roleLabel(user.role)} · ${user.email ?? ""}`
                     : "Member of The Turing Circle"}
                 </p>
               </div>
@@ -202,8 +206,8 @@ export default function ProfilePage() {
               </motion.div>
             )}
 
-            {/* Drafts */}
-            {user && (
+            {/* Drafts — editors and moderators only */}
+            {user && canWrite(user) && (
               <motion.section
                 className="glass-panel profile-section"
                 initial="hidden"

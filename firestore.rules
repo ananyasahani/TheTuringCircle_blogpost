@@ -2,17 +2,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ── Identity helpers ──────────────────────────────────────────────────
     function isSignedIn() {
       return request.auth != null;
     }
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
-    function isModerator() {
-      return isSignedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "moderator";
+
+    // Roles. Three tiers, stored on users/{uid}.role:
+    //   reader    — the default; reads posts and writes comments
+    //   editor    — reader + writes and publishes their OWN posts
+    //   moderator — editor + deletes ANY post or comment
+    function role() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
+    function isModerator() {
+      return isSignedIn() && role() == "moderator";
+    }
+    // May author posts: editors and moderators.
+    function canWrite() {
+      return isSignedIn() && (role() == "editor" || role() == "moderator");
+    }
+
     function isVerified() {
       return isSignedIn() && request.auth.token.email_verified;
     }
@@ -20,7 +32,6 @@ service cloud.firestore {
       return !exists(/databases/$(database)/documents/denylist/$(request.auth.uid));
     }
 
-    // DRAFTS — only the author and moderators
     // Titles may be a plain string or a [lead, highlight] tuple (list).
     function hasValidTitle() {
       return request.resource.data.title is string
@@ -34,33 +45,38 @@ service cloud.firestore {
              || request.resource.data.content is map;
     }
 
+    // ── DRAFTS — the author and moderators ────────────────────────────────
     match /drafts/{draftId} {
       allow read: if isOwner(resource.data.authorId) || isModerator();
-      allow create: if isSignedIn()
+      allow create: if canWrite()
                     && request.resource.data.authorId == request.auth.uid
                     && hasValidTitle()
                     && hasValidContent();
       allow update: if isOwner(resource.data.authorId)
+                    && canWrite()
                     && request.resource.data.authorId == resource.data.authorId
                     && hasValidContent();
       allow delete: if isOwner(resource.data.authorId) || isModerator();
     }
 
-    // PUBLISHED — anyone can read. Client-only publishing: a signed-in author
-    // may create/update their OWN published post (moderators, any post).
+    // ── PUBLISHED — world readable; authored by editors ───────────────────
     match /published/{postId} {
       allow read: if true;
-      allow create: if isSignedIn()
+      allow create: if canWrite()
                     && request.resource.data.authorId == request.auth.uid
                     && hasValidTitle()
                     && hasValidContent();
+      // An editor may revise only their own post; a moderator, any post.
       allow update: if isModerator()
                     || (isOwner(resource.data.authorId)
+                        && canWrite()
                         && request.resource.data.authorId == resource.data.authorId
                         && hasValidContent());
       allow delete: if isOwner(resource.data.authorId) || isModerator();
 
-      // COMMENTS — subcollection on each published post
+      // ── COMMENTS — any verified member may join the discussion ──────────
+      // Deliberately NOT gated on canWrite(): readers comment, they just
+      // cannot author posts.
       match /comments/{commentId} {
         allow read: if true;
         allow create: if isVerified() && isNotBlocked()
@@ -74,15 +90,23 @@ service cloud.firestore {
       }
     }
 
-    // USERS
+    // ── USERS ─────────────────────────────────────────────────────────────
+    // Publicly readable (bylines), but a member may never grant themselves a
+    // role: every account is created as "reader", and an update must leave
+    // `role` exactly as it was. Promotion to editor/moderator is done from
+    // the Firebase console, which uses the Admin SDK and bypasses these rules.
     match /users/{userId} {
       allow read: if true;
-      allow write: if isOwner(userId);
+      allow create: if isOwner(userId)
+                    && request.resource.data.role == "reader";
+      allow update: if isOwner(userId)
+                    && request.resource.data.role == resource.data.role;
+      allow delete: if false;
     }
 
-    // SUBSCRIBERS — newsletter signups. Anyone may subscribe (create their own
-    // doc keyed by email); the list is never client-readable. Moderators can
-    // clean up entries.
+    // ── SUBSCRIBERS — newsletter signups ──────────────────────────────────
+    // Anyone may subscribe (create their own doc keyed by email); the list is
+    // never client-readable. Moderators can clean up entries.
     match /subscribers/{email} {
       allow read: if false;
       allow create: if request.resource.data.email is string

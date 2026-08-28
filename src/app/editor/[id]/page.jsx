@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { canWrite } from "@/services/auth.service";
 import {
   getDraft,
   getPublishedForEdit,
@@ -69,6 +70,26 @@ export default function EditorPage() {
   );
 
   if (loading || !user) return null;
+
+  // Signed in, but not allowed to author anything.
+  if (!canWrite(user)) {
+    return (
+      <div className="tc-editor-shell">
+        <main className="tc-editor-canvas">
+          <h1 className="subpage-title">Writing is for editors</h1>
+          <p className="subpage-subtitle">
+            Your account can read and comment. Ask a moderator to give you
+            editor access if you would like to write for the journal.
+          </p>
+          <p style={{ marginTop: "2rem" }}>
+            <Link href="/" className="back-link">
+              ← Back to the journal
+            </Link>
+          </p>
+        </main>
+      </div>
+    );
+  }
 
   if (state !== "ready") {
     return (

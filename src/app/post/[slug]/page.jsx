@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { getPostBySlug, getPostBySlugStatic } from "@/services/posts.service";
 import Navbar from "@/components/layout/Navbar";
@@ -10,12 +10,18 @@ import LiquidSpiral from "@/components/visuals/LiquidSpiral";
 import PublishedContent from "@/components/editor/PublishedContent";
 import { authorField, postDate, relativeTime } from "@/lib/postDate";
 import CommentThread from "@/components/post/CommentThread";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { isModerator } from "@/services/auth.service";
+import { deletePublishedPost } from "@/services/drafts.service";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function PostPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const slug = params.slug;
+  const [removing, setRemoving] = useState(false);
   // Instant static render, then swap in the Firestore post if present.
   const [post, setPost] = useState(() =>
     slug ? getPostBySlugStatic(slug) ?? null : null,
@@ -31,6 +37,28 @@ export default function PostPage() {
       alive = false;
     };
   }, [slug]);
+
+  // The post's author may take their own piece down; a moderator, any piece.
+  const canRemove =
+    !!user && !!post && (user.uid === post.authorId || isModerator(user));
+
+  const removePost = async () => {
+    if (
+      !window.confirm(
+        "Delete this post and its comments? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+    setRemoving(true);
+    try {
+      await deletePublishedPost(post.slug);
+      router.push("/");
+    } catch {
+      setRemoving(false);
+      window.alert("Could not delete this post.");
+    }
+  };
 
   if (!post) {
     return (
@@ -163,6 +191,16 @@ export default function PostPage() {
                   <span className="material-symbols-outlined">arrow_back</span>
                   Back to feed
                 </Link>
+                {canRemove && (
+                  <button
+                    type="button"
+                    className="post-delete"
+                    onClick={removePost}
+                    disabled={removing}
+                  >
+                    {removing ? "Deleting…" : "Delete post"}
+                  </button>
+                )}
               </div>
             </footer>
           </motion.article>

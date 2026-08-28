@@ -10,13 +10,41 @@ import { auth, db } from "@/lib/firebase";
 
 const googleProvider = new GoogleAuthProvider();
 
+/**
+ * Three tiers, mirroring firestore.rules:
+ *   reader    — the default; reads posts and writes comments
+ *   editor    — reader + writes and publishes their own posts
+ *   moderator — editor + deletes any post or comment
+ *
+ * Promotion happens in the Firebase console. The rules forbid a member from
+ * changing their own role, so it can't be done from the app.
+ */
+export type Role = "reader" | "editor" | "moderator";
+
 export interface UserProfile {
   uid: string;
   name: string;
   email: string | null;
   avatar: string | null;
-  role: "reader" | "moderator";
+  role: Role;
   createdAt?: unknown;
+}
+
+/** May author and publish posts. */
+export function canWrite(user: UserProfile | null): boolean {
+  return user?.role === "editor" || user?.role === "moderator";
+}
+
+/** May delete anyone's post or comment. */
+export function isModerator(user: UserProfile | null): boolean {
+  return user?.role === "moderator";
+}
+
+/** Human label for the profile header. */
+export function roleLabel(role: Role | undefined): string {
+  if (role === "moderator") return "Moderator";
+  if (role === "editor") return "Editor";
+  return "Member";
 }
 
 /**
