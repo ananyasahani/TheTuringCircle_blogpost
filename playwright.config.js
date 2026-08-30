@@ -14,6 +14,9 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "./tests",
+  // Only the browser specs. tests/rules/ holds Firestore rules tests,
+  // which run on the emulator under `npm run test:rules` instead.
+  testMatch: "**/*.spec.js",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

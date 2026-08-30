@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "playwright test",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test tests/rules/\"",
+    "rules:deploy": "firebase deploy --only firestore:rules"
   },
   "dependencies": {
     "@studio-freight/lenis": "^1.0.42",
@@ -30,6 +32,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/three": "^0.185.4",
