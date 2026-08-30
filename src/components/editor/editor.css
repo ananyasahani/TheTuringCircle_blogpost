@@ -4,7 +4,14 @@
 
 .tc-editor-shell {
   min-height: 100svh;
-  background: var(--ink);
+  /* The same 56px rule grid every other page sits on (.tc-grid in
+     globals.css), so the writing surface reads as part of the publication
+     rather than a separate writing app on a flat field. */
+  background:
+    linear-gradient(rgba(238, 233, 218, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(238, 233, 218, 0.025) 1px, transparent 1px),
+    var(--ink);
+  background-size: 56px 56px;
   color: var(--paper);
 }
 
@@ -57,7 +64,7 @@
   text-transform: uppercase;
   color: var(--brass);
   padding: 0.5rem 1.1rem;
-  border-radius: 999px;
+  border-radius: 2px;
   border: 1px solid rgba(212, 175, 55, 0.32);
   background: rgba(212, 175, 55, 0.07);
   cursor: pointer;
@@ -85,14 +92,17 @@
   overflow: hidden;
   display: block;
   margin-bottom: 1.75rem;
-  font-family: var(--journal-sans);
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  line-height: 1.12;
-  letter-spacing: -0.03em;
+  /* Cormorant at zero tracking, mirroring .post-title in globals.css. The
+     old Outfit 800 / -0.03em was Medium's title, and matched nothing this
+     editor actually publishes. */
+  font-family: var(--journal-serif);
+  font-size: clamp(2.6rem, 6vw, 4.2rem);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: 0;
   color: var(--paper);
 }
-.tc-editor-title::placeholder { color: rgba(238, 233, 218, 0.16); }
+.tc-editor-title::placeholder { color: rgba(238, 233, 218, 0.22); }
 
 .tc-editor-body {
   outline: none;
@@ -104,13 +114,14 @@
 
 .tc-editor-body h2,
 .tc-editor-body h3 {
-  font-family: var(--journal-sans);
+  font-family: var(--journal-serif);
   color: var(--paper);
-  letter-spacing: -0.015em;
+  font-weight: 500;
+  letter-spacing: 0;
   margin-top: 2.6rem;
 }
-.tc-editor-body h2 { font-size: 1.6rem; font-weight: 800; }
-.tc-editor-body h3 { font-size: 1.25rem; font-weight: 700; }
+.tc-editor-body h2 { font-size: 2.1rem; }
+.tc-editor-body h3 { font-size: 1.7rem; }
 
 .tc-editor-body a { color: var(--brass); text-decoration: underline; }
 
@@ -126,7 +137,7 @@
 .tc-editor-body pre {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--hairline);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 1rem 1.15rem;
   overflow-x: auto;
   font-family: var(--journal-mono);
@@ -139,7 +150,7 @@
 .tc-editor-body img {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--hairline);
 }
 
@@ -177,7 +188,7 @@
 .tc-inline-math {
   display: inline-block;
   padding: 0 0.12em;
-  border-radius: 3px;
+  border-radius: 2px;
   cursor: pointer;
 }
 .tc-inline-math:hover { background: rgba(212, 175, 55, 0.12); }
@@ -197,7 +208,7 @@
   margin: 2rem 0;
   padding: 1.1rem;
   border: 1px solid var(--hairline);
-  border-radius: 10px;
+  border-radius: 2px;
   background: rgba(255, 255, 255, 0.02);
 }
 .tc-math-block-preview { overflow-x: auto; cursor: pointer; }
@@ -208,7 +219,7 @@
   padding: 0.7rem 0.85rem;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--hairline);
-  border-radius: 6px;
+  border-radius: 2px;
   outline: none;
   resize: vertical;
   font-family: var(--journal-mono);
@@ -231,7 +242,7 @@
   width: 100%;
   min-height: 380px;
   border: 1px solid var(--hairline);
-  border-radius: 10px;
+  border-radius: 2px;
   background: #000;
 }
 .tc-embed-fallback {
@@ -240,7 +251,7 @@
   gap: 0.3rem;
   padding: 1rem 1.15rem;
   border: 1px dashed var(--hairline);
-  border-radius: 10px;
+  border-radius: 2px;
 }
 .tc-embed-fallback a { color: var(--brass); word-break: break-all; }
 .tc-embed-fallback span {
@@ -249,47 +260,45 @@
   color: var(--paper-muted);
 }
 
-/* ── Selection bubble ──
-   The border + shadow are load-bearing: an unbordered dark pill vanishes
-   against the dark canvas. */
+/* ── Selection bar ──
+   A square hairline slab, not a floating pill. The border and a faint drop
+   are still load-bearing: an unbordered dark box vanishes against the dark
+   canvas. Buttons are divided by hairlines rather than spaced by gaps, so
+   the bar reads as one typeset object. */
 .tc-bubble {
   display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.3rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(22, 23, 21, 0.96);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.85);
+  align-items: stretch;
+  border-radius: 2px;
+  border: 1px solid var(--hairline);
+  background: var(--ink-soft);
+  box-shadow: 0 8px 24px -14px rgba(0, 0, 0, 0.9);
 }
 
 .tc-bubble button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 31px;
   border: none;
-  border-radius: 999px;
+  border-radius: 0;
   background: none;
   color: rgba(238, 233, 218, 0.62);
   cursor: pointer;
   transition: background 160ms ease, color 160ms ease;
 }
 .tc-bubble button:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(238, 233, 218, 0.06);
   color: var(--paper);
 }
 .tc-bubble button.is-active { color: var(--brass); }
 .tc-bubble .material-symbols-outlined { font-size: 1.05rem; }
 
+/* Stretches the full height of the bar, dividing it like a rule. */
 .tc-bubble-divider {
   width: 1px;
-  height: 18px;
-  margin: 0 0.25rem;
-  background: rgba(255, 255, 255, 0.12);
+  margin: 0;
+  background: var(--hairline);
 }
 
 /* Link entry inside the bubble */
@@ -303,7 +312,7 @@
   width: 210px;
   padding: 0.35rem 0.5rem;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
+  border-radius: 2px;
   background: rgba(0, 0, 0, 0.35);
   color: var(--paper);
   outline: none;
@@ -320,45 +329,82 @@
   color: var(--brass);
 }
 
-/* ── Insert (+) menu ── */
+/* ── Insert menu ──
+   A compositor's palette — uppercase mono labels divided by hairlines —
+   rather than Medium's circular + and its row of icon bubbles. */
 .tc-insert {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  align-items: stretch;
+  font-family: var(--journal-mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
-.tc-insert-toggle,
-.tc-insert-row button {
+.tc-insert-toggle {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: transparent;
+  gap: 0.45rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  background: var(--ink-soft);
   color: rgba(238, 233, 218, 0.5);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  white-space: nowrap;
   cursor: pointer;
-  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition: color 160ms ease, border-color 160ms ease;
 }
-.tc-insert-toggle:hover,
-.tc-insert-row button:hover {
+.tc-insert-toggle:hover {
   color: var(--paper);
-  border-color: rgba(255, 255, 255, 0.32);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(238, 233, 218, 0.32);
 }
-.tc-insert .material-symbols-outlined { font-size: 1rem; }
+
+.tc-insert-mark { font-size: 0.85rem; line-height: 1; }
+
+/* The rule trailing the collapsed mark, like a cut line on a galley. */
+.tc-insert:not(.is-open) .tc-insert-toggle::after {
+  content: "";
+  width: 2.2rem;
+  height: 1px;
+  background: var(--hairline);
+}
 
 .tc-insert-row {
   display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding-left: 0.15rem;
+  align-items: stretch;
+  margin-left: 0.5rem;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  background: var(--ink-soft);
+}
+.tc-insert-row button {
+  padding: 0.4rem 0.7rem;
+  border: none;
+  border-left: 1px solid var(--hairline);
+  background: none;
+  color: rgba(238, 233, 218, 0.55);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease;
+}
+.tc-insert-row button:first-child { border-left: none; }
+.tc-insert-row button:hover {
+  color: var(--brass);
+  background: rgba(212, 175, 55, 0.06);
 }
 
 @media (max-width: 820px) {
-  /* The left gutter doesn't exist on narrow screens — sit the row inline. */
-  .tc-insert { flex-wrap: wrap; max-width: 70vw; }
+  /* No left gutter to sit in — drop the word and the rule, let the row wrap. */
+  .tc-insert { flex-wrap: wrap; max-width: 78vw; }
+  .tc-insert-label { display: none; }
+  .tc-insert:not(.is-open) .tc-insert-toggle::after { display: none; }
+  .tc-insert-row { margin-left: 0.35rem; }
 }
 
 /* ── Published reading view ──
@@ -423,7 +469,7 @@
 .tc-editor-notice {
   margin-bottom: 1.5rem;
   padding: 0.6rem 0.85rem;
-  border-radius: 8px;
+  border-radius: 2px;
   border: 1px solid rgba(212, 175, 55, 0.24);
   background: rgba(212, 175, 55, 0.06);
   font-family: var(--journal-mono);

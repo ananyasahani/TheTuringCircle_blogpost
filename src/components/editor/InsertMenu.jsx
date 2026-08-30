@@ -3,15 +3,11 @@
 import { useEffect, useState } from "react";
 import { FloatingMenu } from "@tiptap/react/menus";
 
-const Icon = ({ name }) => (
-  <span className="material-symbols-outlined" aria-hidden="true">
-    {name}
-  </span>
-);
-
 /**
- * The `+` that appears on an empty line and expands into a row of block
- * inserts. Collapses again after an insert, or via the X.
+ * The insert mark that appears on an empty line and expands into a palette of
+ * block inserts. Set in uppercase mono and divided by hairlines rather than
+ * rendered as icon bubbles, so it reads as compositor's furniture rather than
+ * app chrome. Collapses again after an insert, or via the mark itself.
  *
  * Image insertion takes a URL rather than a file upload: Firebase Storage
  * requires the Blaze plan, which this project has not enabled.
@@ -62,7 +58,10 @@ export default function InsertMenu({ editor }) {
         title={open ? "Close" : "Insert"}
         aria-expanded={open}
       >
-        <Icon name={open ? "close" : "add"} />
+        <span className="tc-insert-mark" aria-hidden="true">
+          {open ? "\u00d7" : "+"}
+        </span>
+        {!open && <span className="tc-insert-label">Insert</span>}
       </button>
 
       {open && (
@@ -74,7 +73,7 @@ export default function InsertMenu({ editor }) {
               promptFor("Image URL", (src) => chain().setImage({ src }).run())
             }
           >
-            <Icon name="image" />
+            Image
           </button>
           <button
             type="button"
@@ -85,7 +84,7 @@ export default function InsertMenu({ editor }) {
               )
             }
           >
-            <Icon name="smart_display" />
+            Video
           </button>
           <button
             type="button"
@@ -94,7 +93,7 @@ export default function InsertMenu({ editor }) {
               promptFor("URL to embed", (src) => chain().insertEmbed({ src }).run())
             }
           >
-            <Icon name="frame_source" />
+            Embed
           </button>
           <button
             type="button"
@@ -104,7 +103,7 @@ export default function InsertMenu({ editor }) {
               close();
             }}
           >
-            <Icon name="code" />
+            Code
           </button>
           <button
             type="button"
@@ -114,7 +113,7 @@ export default function InsertMenu({ editor }) {
               close();
             }}
           >
-            <Icon name="horizontal_rule" />
+            Rule
           </button>
           <button
             type="button"
@@ -124,7 +123,7 @@ export default function InsertMenu({ editor }) {
               close();
             }}
           >
-            <Icon name="functions" />
+            Math
           </button>
         </div>
       )}
