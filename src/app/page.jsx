@@ -162,13 +162,12 @@ export default function Homepage() {
           </header>
 
           <div className="index-list">
-            {posts.slice(4, 9).map((post, index) => (
+            {posts.slice(4, 9).map((post) => (
               <Link
                 href={`/post/${post.slug}`}
                 className="index-row"
                 key={post.id}
               >
-                <span>{String(index + 5).padStart(2, "0")}</span>
                 <h3>{titleOf(post)}</h3>
                 <p>{post.tags?.[0]?.label || "Notes"}</p>
                 <MoveUpRight size={19} strokeWidth={1.3} />
@@ -261,7 +260,6 @@ function FlowStory({ post, index }) {
             unoptimized
           />
         )}
-        <span>{String(index + 1).padStart(2, "0")}</span>
       </Link>
       <div className="flow-copy">
         <div className="flow-meta">
