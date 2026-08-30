@@ -517,6 +517,14 @@ html.lenis, html.lenis body { height: auto; }
   max-width: 800px; margin: 0 auto;
   position: relative;
   z-index: 1;
+  /* Article blocks reveal from 44px off their resting position (the framer
+     Reveal in post/[slug]/page.jsx, and --reveal-x for editor-written posts).
+     Once the viewport drops below ~778px that offset reaches past the screen
+     edge, so the page twitched sideways on every reveal as you scrolled.
+     `clip` rather than `hidden`: it must not become a scroll container.
+     Free on wider screens — .post-body is 690px inside a 980px container,
+     so the offset never reaches this edge there. */
+  overflow-x: clip;
 }
 .post-header { margin-bottom: 3rem; }
 .post-meta {
