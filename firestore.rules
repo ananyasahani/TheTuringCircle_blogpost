@@ -104,9 +104,20 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ── SUBSCRIBERS — newsletter signups ──────────────────────────────────
-    // Anyone may subscribe (create their own doc keyed by email); the list is
-    // never client-readable. Moderators can clean up entries.
+    // USERNAMES — unique handle registry. Doc id = the username; value = { uid }.
+    // Create-only claim: a signed-in user may claim a free name for themselves.
+    // Existing docs can't be overwritten (that's what enforces uniqueness).
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid;
+      allow update: if false;
+      allow delete: if isModerator();
+    }
+
+    // SUBSCRIBERS — newsletter signups. Anyone may subscribe (create their own
+    // doc keyed by email); the list is never client-readable. Moderators can
+    // clean up entries.
     match /subscribers/{email} {
       allow read: if false;
       allow create: if request.resource.data.email is string

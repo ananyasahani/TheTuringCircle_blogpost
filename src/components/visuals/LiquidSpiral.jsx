@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 /**
@@ -216,10 +216,15 @@ export default function LiquidSpiral({
   // Render-cost controls. "ambient" caps DPR + frame rate for cheap
   // background use (e.g. behind blog posts); "hero" runs full quality.
   quality = "hero",
+  // When true, skip WebGL entirely and render the static image (Lite mode).
+  lite = false,
 }) {
   const canvasRef = useRef(null);
+  // Falls back to the static image if WebGL can't start (e.g. Brave Shields).
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    if (lite) return; // Lite mode renders the <img> below — no WebGL work.
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -234,11 +239,19 @@ export default function LiquidSpiral({
     const targetFps = ambient ? 30 : 60;
     const frameInterval = 1 / targetFps;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: !ambient,
-      powerPreference: ambient ? "low-power" : "high-performance",
-    });
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: !ambient,
+        powerPreference: ambient ? "low-power" : "high-performance",
+        failIfMajorPerformanceCaveat: false,
+      });
+    } catch {
+      // WebGL blocked/unavailable — show the static image instead.
+      setFailed(true);
+      return;
+    }
     renderer.setClearColor(0x000000, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
 
@@ -284,10 +297,22 @@ export default function LiquidSpiral({
     let hoverTarget = 0;
     let frameId;
 
-    const resize = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const width = Math.max(1, bounds.width);
-      const height = Math.max(1, bounds.height);
+    // Mobile browsers change innerHeight as the URL bar hides/shows on scroll.
+    // Deriving the canvas size from the live viewport height makes the shader's
+    // resolution (and thus its look) jump mid-scroll — the hero→intro glitch.
+    // Fix: base HEIGHT on the stable screen height (unaffected by the URL bar)
+    // and only re-render on WIDTH changes (orientation / real layout changes).
+    let lastWidth = 0;
+    const resize = (force = false) => {
+      // Guard on innerWidth, not the element rect: innerWidth is unaffected by
+      // the URL bar (scroll) AND by scrollbars, so only a real width change
+      // (orientation / layout) gets through — killing the mid-scroll glitch.
+      const width = Math.max(1, window.innerWidth);
+      if (!force && Math.abs(width - lastWidth) < 2) return;
+      lastWidth = width;
+      // Height from the stable physical screen, not the URL-bar-affected viewport.
+      const screenH = window.screen?.height || window.innerHeight;
+      const height = Math.round(Math.max(window.innerHeight, screenH) + 120);
       renderer.setSize(width, height, false);
       uniforms.uResolution.value.set(width, height);
     };
@@ -336,11 +361,32 @@ export default function LiquidSpiral({
       renderer.render(scene, camera);
     };
 
-    const resizeObserver = new ResizeObserver(resize);
+    const resizeObserver = new ResizeObserver(() => resize(false));
     resizeObserver.observe(canvas);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    canvas.addEventListener("pointerleave", onPointerLeave);
-    resize();
+    resize(true); // initial sizing
+
+    if (reduceMotion) {
+      // Honour reduced-motion: draw a single still frame and stop. No loop,
+      // no pointer tracking, zero ongoing GPU cost.
+      uniforms.uTime.value = 0;
+      renderer.render(scene, camera);
+      return () => {
+        resizeObserver.disconnect();
+        io.disconnect();
+        uniforms.uTex.value?.dispose();
+        material.dispose();
+        quad.geometry.dispose();
+        renderer.dispose();
+      };
+    }
+
+    // Pointer interaction only on devices that actually hover (not touch). This
+    // removes the mobile glitch where scroll-touch drove the shader.
+    const canHover = window.matchMedia("(hover: hover)").matches;
+    if (canHover) {
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      canvas.addEventListener("pointerleave", onPointerLeave);
+    }
     render();
 
     return () => {
@@ -354,7 +400,19 @@ export default function LiquidSpiral({
       quad.geometry.dispose();
       renderer.dispose();
     };
-  }, [src, mode, iridescence, quality]);
+  }, [src, mode, iridescence, quality, lite]);
+
+  // Lite mode or a WebGL failure → render the static image instead of a canvas.
+  if (lite || failed) {
+    return (
+      <img
+        src={src}
+        alt=""
+        className="liquid-spiral liquid-spiral-static"
+        aria-hidden="true"
+      />
+    );
+  }
 
   return (
     <canvas

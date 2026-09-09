@@ -13,6 +13,8 @@ import CommentThread from "@/components/post/CommentThread";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { isModerator } from "@/services/auth.service";
 import { deletePublishedPost } from "@/services/drafts.service";
+import SignalFlap from "@/components/visuals/SignalFlap";
+import { usePerf } from "@/components/providers/PerfProvider";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -20,6 +22,7 @@ export default function PostPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { lite } = usePerf();
   const slug = params.slug;
   const [removing, setRemoving] = useState(false);
   // Instant static render, then swap in the Firestore post if present.
@@ -81,14 +84,21 @@ export default function PostPage() {
               mode="flow"
               iridescence={0.6}
               quality="ambient"
+              lite={lite}
             />
             <div className="post-ambient-veil" />
           </div>
         )}
         <Navbar />
 
+        {/* A little game in the side gutter — reward for the curious, and it
+            fills the wide-screen whitespace. Hidden on narrow screens. */}
+        <aside className="post-gutter-game" aria-hidden="true">
+          <SignalFlap />
+        </aside>
+
         <main className="post-container">
-          <motion.article 
+          <motion.article
             className="post-content"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
