@@ -184,7 +184,7 @@ export default function ProfilePage() {
                 custom={0.08}
               >
                 <div className="profile-handle-copy">
-                  <strong>Choose your handle.</strong> This is how you'll appear
+                  <strong>Choose your handle.</strong> This is how you&apos;ll appear
                   on posts and comments, instead of your Google name.
                 </div>
                 <div className="profile-handle-row">
