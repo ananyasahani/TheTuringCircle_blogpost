@@ -212,10 +212,19 @@ export default function ProfilePage() {
               </motion.div>
             )}
 
-            {/* Write a new post */}
-            <Link href="/editor/new" className="profile-write">
-              ✎ Write a post
-            </Link>
+            {/* Write a new post. This creates the draft first and then opens
+                it: /editor/[id] loads a real document by id, so there is no
+                such thing as a blank "/editor/new" to link at. */}
+            {user && canWrite(user) && (
+              <button
+                type="button"
+                className="profile-write"
+                onClick={startDraft}
+                disabled={creating}
+              >
+                ✎ {creating ? "Opening…" : "Write a post"}
+              </button>
+            )}
 
             {/* Admin: one-time seed of the static posts into Firestore.
                 Auto-hides once Firestore has data. */}
@@ -252,20 +261,10 @@ export default function ProfilePage() {
                 variants={fadeUp}
                 custom={0.18}
               >
-                <div className="profile-section-head">
-                  <h2 className="profile-section-title">
-                    <span className="material-symbols-outlined" style={{ fontSize: "1rem", color: "var(--gold-bright)" }}>edit_note</span>
-                    Drafts
-                  </h2>
-                  <button
-                    type="button"
-                    className="profile-new-btn"
-                    onClick={startDraft}
-                    disabled={creating}
-                  >
-                    {creating ? "Opening…" : "New post"}
-                  </button>
-                </div>
+                <h2 className="profile-section-title">
+                  <span className="material-symbols-outlined" style={{ fontSize: "1rem", color: "var(--gold-bright)" }}>edit_note</span>
+                  Drafts
+                </h2>
                 <p className="profile-section-desc">
                   Unpublished writing. Only you can see these.
                 </p>

@@ -91,6 +91,20 @@ export default function EditorPage() {
     );
   }
 
+  // Still fetching. This needs its own branch: the card below is a dead end
+  // ("Nothing to edit", with a link back to the profile), and showing it while
+  // the document is still on its way reads as an error every single time you
+  // open the editor.
+  if (state === "loading") {
+    return (
+      <div className="tc-editor-shell">
+        <main className="tc-editor-canvas">
+          <p className="subpage-subtitle">Opening…</p>
+        </main>
+      </div>
+    );
+  }
+
   if (state !== "ready") {
     return (
       <div className="tc-editor-shell">
@@ -99,11 +113,9 @@ export default function EditorPage() {
             {state === "forbidden" ? "Not yours to edit" : "Nothing to edit"}
           </h1>
           <p className="subpage-subtitle">
-            {state === "loading"
-              ? "Opening…"
-              : state === "forbidden"
-                ? "This piece belongs to another member."
-                : "It may have been deleted."}
+            {state === "forbidden"
+              ? "This piece belongs to another member."
+              : "It may have been deleted."}
           </p>
           <p style={{ marginTop: "2rem" }}>
             <Link href="/profile" className="back-link">
