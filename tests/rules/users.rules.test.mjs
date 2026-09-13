@@ -161,6 +161,25 @@ describe("what a member may still do to their own profile", () => {
       ),
     );
   });
+
+  it("allows removing the email field from their own profile", async () => {
+    // users/{uid} is world-readable, so the app no longer stores the address
+    // and strips it from older documents on sign-in. That cleanup write must
+    // be accepted — an update that only deletes a field leaves `role` as is.
+    await assertSucceeds(
+      updateDoc(doc(member("reader1"), "users", "reader1"), {
+        email: deleteField(),
+      }),
+    );
+  });
+
+  it("still refuses that cleanup on someone else's profile", async () => {
+    await assertFails(
+      updateDoc(doc(member("reader1"), "users", "editor1"), {
+        email: deleteField(),
+      }),
+    );
+  });
 });
 
 describe("the role actually gates authorship", () => {

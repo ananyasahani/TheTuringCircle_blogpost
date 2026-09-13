@@ -6,6 +6,7 @@ import {
   type User,
 } from "firebase/auth";
 import {
+  deleteField,
   doc,
   getDoc,
   serverTimestamp,
@@ -31,6 +32,12 @@ export interface UserProfile {
   uid: string;
   name: string;
   username?: string | null;
+  /**
+   * In memory only — never written to Firestore. users/{uid} is world-readable
+   * (bylines need it), so storing the address there would publish every
+   * member's email to anyone with the web config. It comes from Firebase
+   * Auth, which only the signed-in browser can see.
+   */
   email: string | null;
   avatar: string | null;
   role: Role;
@@ -104,19 +111,27 @@ async function ensureUserProfile(user: User): Promise<UserProfile> {
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
-    const profile: UserProfile = {
+    const stored = {
       uid: user.uid,
       name: user.displayName || "Anonymous",
       username: null,
-      email: user.email,
       avatar: user.photoURL,
-      role: "reader",
+      role: "reader" as Role,
     };
-    await setDoc(ref, { ...profile, createdAt: serverTimestamp() });
-    return profile;
+    await setDoc(ref, { ...stored, createdAt: serverTimestamp() });
+    return { ...stored, email: user.email };
   }
 
-  return { uid: user.uid, ...(snap.data() as Omit<UserProfile, "uid">) };
+  const data = snap.data() as Omit<UserProfile, "uid">;
+
+  // Profiles created before the address stopped being stored still carry it.
+  // The owner may update their own document, so the next sign-in cleans it
+  // up. Best-effort: a failure here must not block signing in.
+  if ("email" in data) {
+    updateDoc(ref, { email: deleteField() }).catch(() => {});
+  }
+
+  return { uid: user.uid, ...data, email: user.email };
 }
 
 /** Sign in with a Google popup and provision the user's profile doc. */
