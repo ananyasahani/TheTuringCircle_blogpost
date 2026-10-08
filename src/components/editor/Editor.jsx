@@ -32,6 +32,10 @@ export default function Editor({
   // against overlapping writes while one is in flight.
   const hydrating = useRef(true);
   const timer = useRef(null);
+  // Fields edited since the last write. Accumulated rather than replaced:
+  // one timer serves both the title and the body, so a patch that replaced
+  // the pending one would throw away whichever field was edited first.
+  const pending = useRef({});
 
   const editor = useEditor({
     extensions: buildExtensions(),
@@ -53,27 +57,36 @@ export default function Editor({
     },
   });
 
-  const save = useCallback(
-    async (patch) => {
-      setStatus("saving");
-      try {
-        await persist(patch);
-        setStatus("saved");
-      } catch {
-        setStatus("error");
+  /**
+   * Write everything edited since the last successful save. The pending set
+   * is cleared only once the write lands, so a failure leaves the fields
+   * queued and the next edit retries them rather than dropping them.
+   */
+  const flush = useCallback(async () => {
+    const patch = pending.current;
+    if (Object.keys(patch).length === 0) return;
+    setStatus("saving");
+    try {
+      await persist(patch);
+      // Anything edited while the write was in flight stays pending.
+      for (const key of Object.keys(patch)) {
+        if (pending.current[key] === patch[key]) delete pending.current[key];
       }
-    },
-    [persist],
-  );
+      setStatus(Object.keys(pending.current).length ? "unsaved" : "saved");
+    } catch {
+      setStatus("error");
+    }
+  }, [persist]);
 
   const queueSave = useCallback(
     (patch) => {
       if (hydrating.current) return;
+      pending.current = { ...pending.current, ...patch };
       setStatus("unsaved");
       window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(() => save(patch), AUTOSAVE_MS);
+      timer.current = window.setTimeout(flush, AUTOSAVE_MS);
     },
-    [save],
+    [flush],
   );
 
   // Body changes
@@ -96,6 +109,23 @@ export default function Editor({
   }, [editor]);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  /**
+   * Don't let the tab close over unsaved work. The autosave window is short,
+   * but a failed write can leave an edit pending indefinitely, and the only
+   * other signal is a small label in the corner of the bar.
+   */
+  useEffect(() => {
+    if (status !== "unsaved" && status !== "error") return undefined;
+    const warn = (event) => {
+      event.preventDefault();
+      // Browsers show their own wording; a non-empty value is what arms it.
+      event.returnValue = "";
+      return "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [status]);
 
   const handleTitle = (next) => {
     setTitle(next);
