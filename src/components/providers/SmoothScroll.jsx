@@ -14,13 +14,19 @@ export default function SmoothScroll({ children }) {
     });
     lenisRef.current = lenis;
 
+    // The handle has to be kept: destroy() stops Lenis, not the frame loop.
+    // Without the cancel, every navigation left another loop running forever
+    // against a destroyed instance, and scrolling got heavier the longer
+    // someone read.
+    let frame = 0;
     function raf(time) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      frame = requestAnimationFrame(raf);
     }
-    requestAnimationFrame(raf);
+    frame = requestAnimationFrame(raf);
 
     return () => {
+      cancelAnimationFrame(frame);
       lenis.destroy();
     };
   }, []);
