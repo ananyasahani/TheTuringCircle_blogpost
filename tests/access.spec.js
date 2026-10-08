@@ -57,11 +57,28 @@ test("the navbar shows Sign in rather than a profile avatar", async ({
   await expect(page.locator(".nav-avatar")).toHaveCount(0);
 });
 
-test("an unknown post shows the not-found card instead of crashing", async ({
+test("an unknown post answers 404, not a 200 carrying an apology", async ({
   page,
 }) => {
-  await page.goto("/post/definitely-not-a-real-post-slug");
+  const response = await page.goto("/post/definitely-not-a-real-post-slug");
 
+  // The status matters as much as the card: a 200 here is a soft 404, which
+  // keeps the dead URL indexed.
+  expect(response?.status()).toBe(404);
   await expect(page.getByText(/post not found/i)).toBeVisible();
   await expect(page.getByRole("link", { name: /return home/i })).toBeVisible();
+});
+
+test("a real post is in the server HTML, with its own title", async ({
+  page,
+}) => {
+  // Fetched rather than rendered: this is what a crawler or a link preview
+  // sees, and it used to be the not-found card for every editor-written post.
+  const response = await page.request.get("/post/why-the-turing-circle-exists");
+  expect(response.status()).toBe(200);
+
+  const html = await response.text();
+  expect(html).toContain("<title>Why The Turing Circle Exists");
+  expect(html).toMatch(/<meta property="og:title"/);
+  expect(html).not.toMatch(/<h1[^>]*>Post Not Found/);
 });

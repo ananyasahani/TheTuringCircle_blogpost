@@ -2,14 +2,32 @@ import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { PerfProvider } from "@/components/providers/PerfProvider";
 import EasterEggs from "@/components/providers/EasterEggs";
+import { siteUrl } from "@/lib/siteUrl";
+
+const DESCRIPTION =
+  "Field notes from the edge of mathematics, computation, and collective intelligence.";
 
 export const metadata = {
+  // Absolute base for canonical links and Open Graph images. Without it,
+  // relative image paths are dropped from previews rather than resolved.
+  metadataBase: new URL(siteUrl),
   title: {
     default: "The Turing Circle Journal",
     template: "%s | The Turing Circle",
   },
-  description:
-    "Field notes from the edge of mathematics, computation, and collective intelligence.",
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    siteName: "The Turing Circle",
+    title: "The Turing Circle Journal",
+    description: DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Turing Circle Journal",
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }) {
