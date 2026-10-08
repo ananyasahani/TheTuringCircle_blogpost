@@ -6,6 +6,8 @@ import {
   initializeTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
+  addDoc,
+  collection,
   deleteDoc,
   deleteField,
   doc,
@@ -62,6 +64,11 @@ beforeEach(async () => {
     await setDoc(doc(db, "users", "reader1"), profile("reader"));
     await setDoc(doc(db, "users", "editor1"), profile("editor"));
     await setDoc(doc(db, "users", "mod1"), profile("moderator"));
+    await setDoc(doc(db, "published", "p1"), {
+      authorId: "editor1",
+      title: "A post",
+      content: "Body.",
+    });
   });
 });
 
@@ -177,6 +184,60 @@ describe("what a member may still do to their own profile", () => {
     await assertFails(
       updateDoc(doc(member("reader1"), "users", "editor1"), {
         email: deleteField(),
+      }),
+    );
+  });
+});
+
+describe("size limits are enforced by the rules, not just the forms", () => {
+  // The web config ships to every browser, so the forms are advisory: anyone
+  // can write with the SDK. These bounds are the only real ceiling.
+  it("rejects a comment over 2000 characters", async () => {
+    await assertFails(
+      addDoc(collection(member("reader1"), "published", "p1", "comments"), {
+        authorId: "reader1",
+        content: "x".repeat(2001),
+        createdAt: new Date(),
+      }),
+    );
+  });
+
+  it("rejects an empty comment", async () => {
+    await assertFails(
+      addDoc(collection(member("reader1"), "published", "p1", "comments"), {
+        authorId: "reader1",
+        content: "",
+        createdAt: new Date(),
+      }),
+    );
+  });
+
+  it("still accepts a comment of ordinary length", async () => {
+    await assertSucceeds(
+      addDoc(collection(member("reader1"), "published", "p1", "comments"), {
+        authorId: "reader1",
+        content: "A reasonable thought about the piece.",
+        createdAt: new Date(),
+      }),
+    );
+  });
+
+  it("rejects a post body over the content ceiling", async () => {
+    await assertFails(
+      setDoc(doc(member("editor1"), "published", "huge"), {
+        authorId: "editor1",
+        title: "Huge",
+        content: "x".repeat(200001),
+      }),
+    );
+  });
+
+  it("rejects an overlong title", async () => {
+    await assertFails(
+      setDoc(doc(member("editor1"), "published", "longtitle"), {
+        authorId: "editor1",
+        title: "x".repeat(301),
+        content: "fine",
       }),
     );
   });

@@ -33,16 +33,30 @@ service cloud.firestore {
     }
 
     // Titles may be a plain string or a [lead, highlight] tuple (list).
+    // Size limits live HERE, not only in the forms: the web config ships to
+    // every browser, so anyone can write to this database with the SDK and
+    // never see a React validator. A Firestore document is capped at ~1 MiB,
+    // which without these is the only limit that applies.
     function hasValidTitle() {
-      return request.resource.data.title is string
-             || request.resource.data.title is list;
+      return (request.resource.data.title is string
+              && request.resource.data.title.size() <= 300)
+             || (request.resource.data.title is list
+                 && request.resource.data.title.size() <= 2);
     }
 
     // Content is either legacy markdown-ish text (the seeded essays) or a
     // TipTap JSON document (everything written in the editor).
     function hasValidContent() {
-      return request.resource.data.content is string
+      return (request.resource.data.content is string
+              && request.resource.data.content.size() <= 200000)
              || request.resource.data.content is map;
+    }
+
+    // Excerpts feed the cards and the link previews; nothing needs more.
+    function hasValidExcerpt() {
+      return !('excerpt' in request.resource.data.keys())
+             || (request.resource.data.excerpt is string
+                 && request.resource.data.excerpt.size() <= 1000);
     }
 
     // ── DRAFTS — the author and moderators ────────────────────────────────
@@ -51,11 +65,13 @@ service cloud.firestore {
       allow create: if canWrite()
                     && request.resource.data.authorId == request.auth.uid
                     && hasValidTitle()
-                    && hasValidContent();
+                    && hasValidContent()
+                    && hasValidExcerpt();
       allow update: if isOwner(resource.data.authorId)
                     && canWrite()
                     && request.resource.data.authorId == resource.data.authorId
-                    && hasValidContent();
+                    && hasValidContent()
+                    && hasValidExcerpt();
       allow delete: if isOwner(resource.data.authorId) || isModerator();
     }
 
@@ -65,13 +81,15 @@ service cloud.firestore {
       allow create: if canWrite()
                     && request.resource.data.authorId == request.auth.uid
                     && hasValidTitle()
-                    && hasValidContent();
+                    && hasValidContent()
+                    && hasValidExcerpt();
       // An editor may revise only their own post; a moderator, any post.
       allow update: if isModerator()
                     || (isOwner(resource.data.authorId)
                         && canWrite()
                         && request.resource.data.authorId == resource.data.authorId
-                        && hasValidContent());
+                        && hasValidContent()
+                    && hasValidExcerpt());
       allow delete: if isOwner(resource.data.authorId) || isModerator();
 
       // ── COMMENTS — any verified member may join the discussion ──────────
@@ -81,8 +99,13 @@ service cloud.firestore {
         allow read: if true;
         allow create: if isVerified() && isNotBlocked()
                       && request.resource.data.authorId == request.auth.uid
-                      && request.resource.data.content is string;
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0
+                      && request.resource.data.content.size() <= 2000;
         allow update: if isOwner(resource.data.authorId)
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0
+                      && request.resource.data.content.size() <= 2000
                       && (request.time - resource.data.createdAt) < duration.value(1, 'h');
         allow delete: if isOwner(resource.data.authorId)
                       || isModerator()
